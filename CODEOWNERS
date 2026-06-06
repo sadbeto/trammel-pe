@@ -1,0 +1,15 @@
+# 🔒 CODEOWNERS — Trammel PE
+
+# All changes require approval from JJ Solutions
+# Contributors start as "Proposed" and advance through tiers
+
+* @JJSolutions/owners
+
+# JavaScript/HTML (core app) — requires owner review
+/index.html @JJSolutions/owners
+
+# Documentation — requires owner review
+/README.md @JJSolutions/owners
+/CONTRIBUTING.md @JJSolutions/owners
+/CONTRIBUYENDO.md @JJSolutions/owners
+/LICENSE @JJSolutions/owners

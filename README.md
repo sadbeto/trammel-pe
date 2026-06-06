@@ -169,28 +169,47 @@ Machine-readable structured object. Use with APIs, multi-agent systems (OpenClaw
 
 ## Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions are welcome! We value contributors from **diverse professional backgrounds** — engineering, physics, biology, mathematics, linguistics, and more.
 
-### Areas We Need Help
+📄 **Guidelines:** [CONTRIBUTING.md](CONTRIBUTING.md) (English) · [CONTRIBUYENDO.md](CONTRIBUYENDO.md) (Español)
 
-- 🌐 **More languages** — French, German, Japanese, Mandarin, etc.
-- 🎨 **UI/UX improvements** — Better mobile responsiveness, dark/light theme toggle
-- 📝 **More templates** — Data analysis, content writing, API design, etc.
+### Contributor Tiers
+
+| Tier | PRs | Description |
+|------|-----|-------------|
+| 🌱 **Proposed** | Require manual Maintainer approval | New contributors — share your professional background! |
+| 🌿 **Contributor** | Require 1 Maintainer approval | After 2+ merged PRs with consistent quality |
+| 🌳 **Maintainer** | Can approve PRs | Trusted contributors with deep project knowledge |
+
+All PRs require Maintainer approval before merge. No direct pushes to `main`.
+
+### 🌎 Comunidad Latina
+
+¡Hablamos español! La comunidad latina es bienvenida. Issues y PRs pueden ser en **inglés o español**. Los templates de issues incluyen un formulario de introducción donde puedes compartir tu formación profesional.
+
+### Areas We Need Help With
+
+- 🌐 **More languages** — French, German, Japanese, Mandarin, Arabic, etc.
+- 🎨 **UI/UX improvements** — Better mobile responsiveness, dark/light theme toggle, customizable layouts
+- 📝 **More templates** — Data analysis, content writing, API design, security audit, project planning
 - 🧪 **Testing** — Browser compatibility, accessibility testing
-- 📖 **Documentation** — Tutorials, video walkthroughs
-- 🔧 **Features** — Prompt versioning, export to file, prompt chaining
+- 📖 **Documentation** — Tutorials, video walkthroughs, blog posts
+- 🔧 **Features** — Prompt versioning, export to file, prompt chaining, MCP server integration
 
 ## Roadmap
 
-- [ ] More languages (FR, DE, JA, ZH)
+- [ ] More languages (FR, DE, JA, ZH, AR)
+- [ ] MCP server for agent integration
 - [ ] Prompt versioning & history (localStorage)
 - [ ] Export to file (.md, .json)
 - [ ] Prompt chaining (link multiple prompts)
 - [ ] Dark/light theme toggle
+- [ ] Customizable UI layouts
 - [ ] Mobile-responsive improvements
 - [ ] More built-in templates
 - [ ] Quality scoring algorithm improvements
 - [ ] Integration guides for OpenClaw, AutoGPT, CrewAI
+- [ ] Contributor evaluation system (professional background review)
 
 ## License
 
