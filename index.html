@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trammel PE — Trace the arc from idea to execution</title>
+<style>
+:root {
+  --bg: #0a0e17;
+  --surface: #111827;
+  --surface2: #1a2332;
+  --border: #2a3548;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --accent: #38bdf8;
+  --accent2: #818cf8;
+  --accent3: #34d399;
+  --danger: #f87171;
+  --warning: #fbbf24;
+  --glow: 0 0 20px rgba(56,189,248,0.15);
+  --radius: 10px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+.app-header {
+  background: linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.app-header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  white-space: nowrap;
+}
+.app-header h1 span { font-weight: 300; opacity: 0.7; }
+.header-actions { display: flex; gap: 8px; align-items: center; }
+.lang-select {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 28px;
+}
+.lang-select:hover { border-color: var(--accent); }
+.btn {
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.btn:hover { border-color: var(--accent); background: #1e2d3d; }
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none;
+  color: #fff;
+  font-weight: 600;
+}
+.btn-primary:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: var(--glow); }
+.btn-danger { border-color: var(--danger); color: var(--danger); }
+.btn-danger:hover { background: rgba(248,113,113,0.1); }
+.btn-success { border-color: var(--accent3); color: var(--accent3); }
+.btn-success:hover { background: rgba(52,211,153,0.1); }
+
+.container { display: flex; height: calc(100vh - 64px); }
+.form-panel {
+  width: 55%;
+  overflow-y: auto;
+  padding: 20px;
+  border-right: 1px solid var(--border);
+}
+.preview-panel {
+  width: 45%;
+  overflow-y: auto;
+  padding: 20px;
+  background: var(--surface);
+}
+
+.section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 14px;
+  transition: border-color 0.2s;
+}
+.section:hover { border-color: var(--accent); }
+.section-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--accent);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-title .num {
+  background: var(--accent);
+  color: var(--bg);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text2);
+  display: block;
+  margin-bottom: 4px;
+  margin-top: 10px;
+}
+label:first-child { margin-top: 0; }
+textarea, input[type="text"], select {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  color: var(--text);
+  font-size: 0.88rem;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+textarea:focus, input[type="text"]:focus, select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(56,189,248,0.15);
+}
+textarea { min-height: 60px; }
+textarea.large { min-height: 100px; }
+
+.tool-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+.tool-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.82rem;
+  user-select: none;
+}
+.tool-chip:hover { border-color: var(--accent); }
+.tool-chip.selected {
+  border-color: var(--accent);
+  background: rgba(56,189,248,0.1);
+  color: var(--accent);
+}
+.tool-chip .icon { font-size: 1rem; }
+
+.subtask-list { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.subtask-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  position: relative;
+}
+.subtask-card .remove-subtask {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 1.1rem;
+  opacity: 0.6;
+}
+.subtask-card .remove-subtask:hover { opacity: 1; }
+.subtask-num {
+  font-weight: 700;
+  color: var(--accent);
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+}
+
+.preview-section {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 14px;
+  white-space: pre-wrap;
+  font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  position: relative;
+}
+.preview-section .copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+}
+.preview-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent2);
+  margin-bottom: 6px;
+}
+.preview-label.green { color: var(--accent3); }
+
+.tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.tag {
+  background: rgba(56,189,248,0.1);
+  border: 1px solid rgba(56,189,248,0.3);
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 0.78rem;
+  color: var(--accent);
+}
+
+.quality-bar {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.quality-item {
+  flex: 1;
+  background: var(--bg);
+  border-radius: 6px;
+  padding: 8px;
+  text-align: center;
+  font-size: 0.75rem;
+  border: 1px solid var(--border);
+}
+.quality-item .val {
+  font-size: 1.2rem;
+  font-weight: 700;
+  display: block;
+}
+.quality-item .val.good { color: var(--accent3); }
+.quality-item .val.warn { color: var(--warning); }
+.quality-item .val.bad { color: var(--danger); }
+
+.tabs { display: flex; gap: 2px; margin-bottom: 14px; }
+.tab {
+  padding: 8px 16px;
+  border-radius: 8px 8px 0 0;
+  background: var(--surface2);
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  border-bottom: none;
+}
+.tab.active {
+  background: var(--bg);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.toggle-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.toggle {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  background: var(--border);
+  border-radius: 11px;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.toggle.on { background: var(--accent3); }
+.toggle::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s;
+}
+.toggle.on::after { transform: translateX(18px); }
+.toggle-label { font-size: 0.85rem; color: var(--text2); }
+
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text2);
+}
+.empty-state .emoji { font-size: 3rem; margin-bottom: 12px; }
+
+@media (max-width: 768px) {
+  .container { flex-direction: column; height: auto; }
+  .form-panel, .preview-panel { width: 100%; border-right: none; }
+  .form-panel { border-bottom: 1px solid var(--border); }
+  .tool-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+  .app-header { flex-wrap: wrap; gap: 8px; }
+  .header-actions { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <h1>⚡ Trammel PE <span data-i18n="headerSub">— Trace the arc from idea to execution</span></h1>
+  <div class="header-actions">
+    <select class="lang-select" id="langSelect" onchange="changeLang(this.value)" title="Language / Idioma / Idioma">
+      <option value="en">🇺🇸 English</option>
+      <option value="es">🇵🇷 Español</option>
+      <option value="pt">🇧🇷 Português</option>
+    </select>
+    <button class="btn" onclick="resetAll()" data-i18n="btnReset">🔄 Reset</button>
+    <button class="btn" onclick="loadTemplate()" data-i18n="btnTemplate">📋 Template</button>
+    <button class="btn btn-primary" onclick="copyPrompt()">📋 <span data-i18n="btnCopy">Copy Prompt</span></button>
+  </div>
+</div>
+
+<div class="container">
+<!-- ==================== FORM PANEL ==================== -->
+<div class="form-panel" id="formPanel">
+
+  <!-- STEP 1: OBJECTIVE -->
+  <div class="section">
+    <div class="section-title"><span class="num">1</span> <span data-i18n="s1Title">🎯 Objective — What Do You Want Done?</span></div>
+    <label for="objective" data-i18n="s1ObjLabel">Main Objective (start with a verb)</label>
+    <textarea id="objective" data-ph="s1ObjPh" placeholder="e.g. Analyze the competitive landscape for a SaaS startup offering AI-powered customer support automation in Latin America" oninput="updatePreview()"></textarea>
+
+    <label for="domain" data-i18n="s1DomLabel">Domain / Industry</label>
+    <select id="domain" onchange="handleDomain(); updatePreview();">
+      <option value="" data-i18n="s1DomDefault">— Select or type custom —</option>
+      <option value="Software Engineering" data-i18n="s1DomSW">Software Engineering</option>
+      <option value="Data Science & Analytics" data-i18n="s1DomDS">Data Science & Analytics</option>
+      <option value="Cybersecurity" data-i18n="s1DomCyber">Cybersecurity</option>
+      <option value="Marketing & Growth" data-i18n="s1DomMkt">Marketing & Growth</option>
+      <option value="Finance & Trading" data-i18n="s1DomFin">Finance & Trading</option>
+      <option value="Operations & Automation" data-i18n="s1DomOps">Operations & Automation</option>
+      <option value="Research & Education" data-i18n="s1DomRes">Research & Education</option>
+      <option value="Product Management" data-i18n="s1DomProd">Product Management</option>
+      <option value="Legal & Compliance" data-i18n="s1DomLegal">Legal & Compliance</option>
+      <option value="Creative & Content" data-i18n="s1DomCreative">Creative & Content</option>
+      <option value="custom" data-i18n="s1DomCustom">Custom (type below)</option>
+    </select>
+    <input type="text" id="domainCustom" data-ph="s1DomCustomPh" placeholder="Custom domain..." style="display:none;margin-top:6px;" oninput="updatePreview()">
+
+    <label for="successCriteria" data-i18n="s1SuccessLabel">Success Criteria (how will you know it's done right?)</label>
+    <textarea id="successCriteria" data-ph="s1SuccessPh" placeholder="e.g. Produces a prioritized list of 5-7 competitors with revenue estimates, funding stage, key differentiators, and market positioning map" oninput="updatePreview()"></textarea>
+  </div>
+
+  <!-- STEP 2: SCOPE -->
+  <div class="section">
+    <div class="section-title"><span class="num">2</span> <span data-i18n="s2Title">🔭 Scope — Boundaries & Constraints</span></div>
+    <label for="inScope" data-i18n="s2InLabel">IN Scope (what to cover)</label>
+    <textarea id="inScope" data-ph="s2InPh" placeholder="e.g. Latin American market, companies with >$1M ARR, AI/ML-powered products, both direct and indirect competitors" oninput="updatePreview()"></textarea>
+
+    <label for="outScope" data-i18n="s2OutLabel">OUT of Scope (what to exclude)</label>
+    <textarea id="outScope" data-ph="s2OutPh" placeholder="e.g. Companies with no AI component, markets outside LATAM, companies below $500K ARR, generic helpdesk software without AI" oninput="updatePreview()"></textarea>
+
+    <label for="depth" data-i18n="s2DepthLabel">Depth Level</label>
+    <select id="depth" onchange="updatePreview()">
+      <option value="quick" data-i18n="s2DepthQuick">⚡ Quick Scan — Surface-level overview</option>
+      <option value="standard" selected data-i18n="s2DepthStd">🔍 Standard — Thorough but practical</option>
+      <option value="deep" data-i18n="s2DepthDeep">🔬 Deep Dive — Exhaustive analysis with sources</option>
+      <option value="expert" data-i18n="s2DepthExp">🧠 Expert — PhD-level depth, edge cases, citations</option>
+    </select>
+
+    <div class="toggle-row">
+      <div class="toggle" id="toggleSelfLearn" onclick="toggleSwitch(this)"></div>
+      <span class="toggle-label" data-i18n="s2SelfLearn">Enable Self-Learning Loop (agent iterates & refines)</span>
+    </div>
+  </div>
+
+  <!-- STEP 3: TOOLS -->
+  <div class="section">
+    <div class="section-title"><span class="num">3</span> <span data-i18n="s3Title">🛠️ Tools — What Should the Agent Use?</span></div>
+    <p style="font-size:0.82rem;color:var(--text2);margin-bottom:8px;" data-i18n="s3Desc">Select tools the agent should leverage. These will be specified in the prompt.</p>
+    <div class="tool-grid" id="toolGrid">
+      <div class="tool-chip" data-tool="web_search" onclick="toggleTool(this)">🔍 <span data-i18n="tWebSearch">Web Search</span></div>
+      <div class="tool-chip" data-tool="code_execution" onclick="toggleTool(this)">💻 <span data-i18n="tCodeExec">Code Execution</span></div>
+      <div class="tool-chip" data-tool="file_read_write" onclick="toggleTool(this)">📄 <span data-i18n="tFileRW">File R/W</span></div>
+      <div class="tool-chip" data-tool="api_calls" onclick="toggleTool(this)">🔌 <span data-i18n="tApiCalls">API Calls</span></div>
+      <div class="tool-chip" data-tool="data_analysis" onclick="toggleTool(this)">📊 <span data-i18n="tDataAnalysis">Data Analysis</span></div>
+      <div class="tool-chip" data-tool="browser_automation" onclick="toggleTool(this)">🌐 <span data-i18n="tBrowser">Browser Automation</span></div>
+      <div class="tool-chip" data-tool="database" onclick="toggleTool(this)">🗄️ <span data-i18n="tDatabase">Database Query</span></div>
+      <div class="tool-chip" data-tool="shell_terminal" onclick="toggleTool(this)">⬛ <span data-i18n="tShell">Shell/Terminal</span></div>
+      <div class="tool-chip" data-tool="image_generation" onclick="toggleTool(this)">🎨 <span data-i18n="tImageGen">Image Gen</span></div>
+      <div class="tool-chip" data-tool="document_processing" onclick="toggleTool(this)">📑 <span data-i18n="tDocProcess">Doc Processing</span></div>
+      <div class="tool-chip" data-tool="scheduling_cron" onclick="toggleTool(this)">⏰ <span data-i18n="tScheduling">Scheduling/Cron</span></div>
+      <div class="tool-chip" data-tool="memory_vector_db" onclick="toggleTool(this)">🧠 <span data-i18n="tMemory">Memory/VectorDB</span></div>
+    </div>
+    <label for="customTools" style="margin-top:10px;" data-i18n="s3CustomLabel">Custom Tools (one per line)</label>
+    <textarea id="customTools" data-ph="s3CustomPh" placeholder="e.g.&#10;Linear API for project tracking&#10;GitHub API for code review&#10;TastyTrade API for options data" oninput="updatePreview()"></textarea>
+  </div>
+
+  <!-- STEP 4: TASK DECOMPOSITION -->
+  <div class="section">
+    <div class="section-title"><span class="num">4</span> <span data-i18n="s4Title">🧩 Task Decomposition — Break It Down</span></div>
+    <p style="font-size:0.82rem;color:var(--text2);margin-bottom:8px;" data-i18n="s4Desc">Divide the objective into sequential or parallel sub-tasks. Each sub-task gets its own focused prompt segment.</p>
+    <div class="subtask-list" id="subtaskList">
+      <div class="subtask-card" id="subtask-1">
+        <button class="remove-subtask" onclick="removeSubtask(1)" title="Remove">✕</button>
+        <div class="subtask-num" data-i18n="s4Subtask">Sub-task 1</div>
+        <input type="text" class="subtask-name" data-ph="s4NamePh" placeholder="Sub-task name (e.g. Research Competitors)" oninput="updatePreview()">
+        <textarea class="subtask-desc" data-ph="s4DescPh" placeholder="What this sub-task accomplishes and its deliverable..." oninput="updatePreview()"></textarea>
+        <label style="margin-top:6px;margin-bottom:2px;" data-i18n="s4DataLabel">Data Focus (specific data this sub-task concentrates on)</label>
+        <input type="text" class="subtask-data" data-ph="s4DataPh" placeholder="e.g. Competitor product features, pricing pages, G2 reviews" oninput="updatePreview()">
+      </div>
+    </div>
+    <button class="btn btn-success" onclick="addSubtask()" style="margin-top:8px;" data-i18n="s4AddBtn">+ Add Sub-task</button>
+  </div>
+
+  <!-- STEP 5: ROLE & PERSONA -->
+  <div class="section">
+    <div class="section-title"><span class="num">5</span> <span data-i18n="s5Title">🎭 Role & Persona</span></div>
+    <label for="role" data-i18n="s5RoleLabel">Who should the AI be?</label>
+    <textarea id="role" data-ph="s5RolePh" placeholder="e.g. Senior competitive intelligence analyst with 10+ years in SaaS markets across Latin America, fluent in Portuguese and Spanish" oninput="updatePreview()"></textarea>
+
+    <label for="tone" data-i18n="s5ToneLabel">Tone & Style</label>
+    <select id="tone" onchange="updatePreview()">
+      <option value="professional" data-i18n="s5TonePro">Professional & Analytical</option>
+      <option value="concise" data-i18n="s5ToneConcise">Concise & Actionable</option>
+      <option value="academic" data-i18n="s5ToneAcademic">Academic & Rigorous</option>
+      <option value="creative" data-i18n="s5ToneCreative">Creative & Exploratory</option>
+      <option value="conversational" data-i18n="s5ToneConv">Conversational & Friendly</option>
+      <option value="technical" data-i18n="s5ToneTech">Technical & Precise</option>
+      <option value="executive" data-i18n="s5ToneExec">Executive Summary Style</option>
+    </select>
+  </div>
+
+  <!-- STEP 6: OUTPUT FORMAT -->
+  <div class="section">
+    <div class="section-title"><span class="num">6</span> <span data-i18n="s6Title">📋 Output Format</span></div>
+    <label for="format" data-i18n="s6FormatLabel">Primary Output Format</label>
+    <select id="format" onchange="updatePreview()">
+      <option value="markdown" data-i18n="s6FmtMd">Markdown (structured with headers)</option>
+      <option value="json" data-i18n="s6FmtJson">JSON (machine-readable schema)</option>
+      <option value="table" data-i18n="s6FmtTable">Tables (comparison matrix)</option>
+      <option value="bulletlist" data-i18n="s6FmtBullets">Bullet Lists (quick scannable)</option>
+      <option value="narrative" data-i18n="s6FmtNarrative">Narrative (prose paragraphs)</option>
+      <option value="code" data-i18n="s6FmtCode">Code (scripts/configs)</option>
+      <option value="mixed" data-i18n="s6FmtMixed">Mixed (best format per section)</option>
+    </select>
+
+    <label for="lengthTarget" data-i18n="s6LenLabel">Target Length</label>
+    <select id="lengthTarget" onchange="updatePreview()">
+      <option value="brief" data-i18n="s6LenBrief">Brief (key points only, &lt;500 words)</option>
+      <option value="moderate" selected data-i18n="s6LenMod">Moderate (practical detail, 500-1500 words)</option>
+      <option value="comprehensive" data-i18n="s6LenComp">Comprehensive (exhaustive, 1500-3000 words)</option>
+      <option value="unlimited" data-i18n="s6LenUnlimited">No length limit (as needed)</option>
+    </select>
+
+    <label for="customFormat" data-i18n="s6CustomLabel">Custom Format Instructions</label>
+    <textarea id="customFormat" data-ph="s6CustomPh" placeholder="e.g. Start with an executive summary table, then detailed sections, end with a risk matrix and action items numbered 1-10" oninput="updatePreview()"></textarea>
+  </div>
+
+  <!-- STEP 7: CONTEXT & DATA -->
+  <div class="section">
+    <div class="section-title"><span class="num">7</span> <span data-i18n="s7Title">📚 Context & Data</span></div>
+    <label for="background" data-i18n="s7BgLabel">Background Context</label>
+    <textarea class="large" id="background" data-ph="s7BgPh" placeholder="e.g. We're a 6-month-old startup with 3 enterprise clients in Mexico and Brazil. Our product uses GPT-4 for ticket classification and response drafting. We're preparing a Series A pitch." oninput="updatePreview()"></textarea>
+
+    <label for="inputData" data-i18n="s7DataLabel">Input Data / Reference Material</label>
+    <textarea class="large" id="inputData" data-ph="s7DataPh" placeholder="Paste any data, documents, URLs, or references the agent should work with..." oninput="updatePreview()"></textarea>
+
+    <label for="audience" data-i18n="s7AudLabel">Target Audience for Output</label>
+    <input type="text" id="audience" data-ph="s7AudPh" placeholder="e.g. Series A investors, internal product team, C-suite" oninput="updatePreview()">
+  </div>
+
+  <!-- STEP 8: CONSTRAINTS -->
+  <div class="section">
+    <div class="section-title"><span class="num">8</span> <span data-i18n="s8Title">🚧 Constraints & Guardrails</span></div>
+    <label for="constraints" data-i18n="s8MustNotLabel">Must NOT (what to avoid)</label>
+    <textarea id="constraints" data-ph="s8MustNotPh" placeholder="e.g. Do not include companies with no public revenue data. Avoid speculation without clear sourcing. No generic advice — every point must be specific and actionable." oninput="updatePreview()"></textarea>
+
+    <label for="mustDo" data-i18n="s8MustLabel">MUST (non-negotiable requirements)</label>
+    <textarea id="mustDo" data-ph="s8MustPh" placeholder="e.g. Must include revenue estimates with confidence levels. Must cite sources. Must provide a competitor positioning matrix." oninput="updatePreview()"></textarea>
+
+    <label for="edgeCases" data-i18n="s8EdgeLabel">Edge Cases & Known Risks</label>
+    <textarea id="edgeCases" data-ph="s8EdgePh" placeholder="e.g. Some competitors may have stealth AI features not publicly disclosed. Market sizing in LATAM is unreliable — triangulate from multiple sources." oninput="updatePreview()"></textarea>
+  </div>
+
+  <!-- STEP 9: SELF-LEARNING LOOP -->
+  <div class="section" id="selfLearnSection" style="display:none;border-color:var(--accent2);">
+    <div class="section-title" style="color:var(--accent2);"><span class="num" style="background:var(--accent2);">9</span> <span data-i18n="s9Title">🔄 Self-Learning Loop Configuration</span></div>
+    <p style="font-size:0.82rem;color:var(--text2);margin-bottom:10px;" data-i18n="s9Desc">Configure how the agent should iterate and refine its own output.</p>
+
+    <label for="iterationStrategy" data-i18n="s9IterLabel">Iteration Strategy</label>
+    <select id="iterationStrategy" onchange="updatePreview()">
+      <option value="reflect" data-i18n="s9IterReflect">Reflect & Refine (agent reviews own output, improves)</option>
+      <option value="validate" data-i18n="s9IterValidate">Validate Against Criteria (check against success criteria)</option>
+      <option value="research_more" data-i18n="s9IterResearch">Research Gaps (identify missing info, research again)</option>
+      <option value="all" data-i18n="s9IterAll">All of the Above (full self-improvement loop)</option>
+    </select>
+
+    <label for="maxIterations" data-i18n="s9MaxLabel">Max Iterations</label>
+    <select id="maxIterations" onchange="updatePreview()">
+      <option value="1" data-i18n="s9Max1">1 pass (quick review)</option>
+      <option value="2" selected data-i18n="s9Max2">2 passes (standard)</option>
+      <option value="3" data-i18n="s9Max3">3 passes (thorough)</option>
+      <option value="5" data-i18n="s9Max5">5 passes (deep refinement)</option>
+    </select>
+
+    <label for="improvementFocus" data-i18n="s9FocusLabel">What should improve with each iteration?</label>
+    <textarea id="improvementFocus" data-ph="s9FocusPh" placeholder="e.g. Accuracy of claims, completeness of coverage, specificity of recommendations, clarity of presentation" oninput="updatePreview()"></textarea>
+  </div>
+
+</div>
+
+<!-- ==================== PREVIEW PANEL ==================== -->
+<div class="preview-panel" id="previewPanel">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+    <h2 style="font-size:1.1rem;" data-i18n="prevTitle">📝 Generated Prompt</h2>
+    <div class="quality-bar" id="qualityBar">
+      <div class="quality-item">
+        <span class="val" id="qComplete">0%</span>
+        <span data-i18n="qComplete">Complete</span>
+      </div>
+      <div class="quality-item">
+        <span class="val" id="qSpecificity">0%</span>
+        <span data-i18n="qSpecificity">Specificity</span>
+      </div>
+      <div class="quality-item">
+        <span class="val" id="qTokens">0</span>
+        <span data-i18n="qTokens">~Tokens</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab(this, 'formatted')">Formatted</div>
+    <div class="tab" onclick="switchTab(this, 'markdown')">Markdown</div>
+    <div class="tab" onclick="switchTab(this, 'json')">JSON</div>
+  </div>
+
+  <div class="tab-content active" id="tab-formatted">
+    <div id="previewFormatted" class="preview-section" style="min-height:300px;">
+      <div class="empty-state">
+        <div class="emoji">⚡</div>
+        <p data-i18n="emptyMain">Fill in the form to generate your structured prompt</p>
+        <p style="font-size:0.78rem;margin-top:8px;" data-i18n="emptySub">The prompt updates live as you type</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-markdown">
+    <div id="previewMarkdown" class="preview-section" style="min-height:300px;">
+      <div class="empty-state">
+        <div class="emoji">📝</div>
+        <p data-i18n="emptyMd">Markdown output appears here</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-json">
+    <div id="previewJSON" class="preview-section" style="min-height:300px;">
+      <div class="empty-state">
+        <div class="emoji">{ }</div>
+        <p data-i18n="emptyJson">JSON output appears here</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:14px;">
+    <div class="preview-label green" data-i18n="copyReadyLabel">💡 Copy-Ready</div>
+    <p style="font-size:0.8rem;color:var(--text2);margin-top:4px;" data-i18n="copyReadyDesc">Click "Copy Prompt" in the header, or click inside the preview and Ctrl+A, Ctrl+C. The prompt is formatted for direct paste into any LLM.</p>
+  </div>
+
+  <div style="margin-top:14px;">
+    <div class="preview-label" data-i18n="compatLabel">🔗 Compatible With</div>
+    <div class="tag-row" style="margin-top:6px;">
+      <span class="tag">ChatGPT</span>
+      <span class="tag">Claude</span>
+      <span class="tag">Gemini</span>
+      <span class="tag">Grok</span>
+      <span class="tag">Llama</span>
+      <span class="tag">DeepSeek</span>
+      <span class="tag" data-i18n="tagAnyLLM">Any LLM</span>
+      <span class="tag">OpenClaw</span>
+      <span class="tag" data-i18n="tagLinearAgents">Linear Agents</span>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+// ============================================================
+// INTERNATIONALIZATION (i18n) SYSTEM
+// ============================================================
+const I18N = {
+  en: {
+    headerSub: "— Trace the arc from idea to execution",
+    btnReset: "🔄 Reset",
+    btnTemplate: "📋 Template",
+    btnCopy: "Copy Prompt",
+    // Step 1
+    s1Title: "🎯 Objective — What Do You Want Done?",
+    s1ObjLabel: "Main Objective (start with a verb)",
+    s1ObjPh: "e.g. Analyze the competitive landscape for a SaaS startup offering AI-powered customer support automation in Latin America",
+    s1DomLabel: "Domain / Industry",
+    s1DomDefault: "— Select or type custom —",
+    s1DomSW: "Software Engineering",
+    s1DomDS: "Data Science & Analytics",
+    s1DomCyber: "Cybersecurity",
+    s1DomMkt: "Marketing & Growth",
+    s1DomFin: "Finance & Trading",
+    s1DomOps: "Operations & Automation",
+    s1DomRes: "Research & Education",
+    s1DomProd: "Product Management",
+    s1DomLegal: "Legal & Compliance",
+    s1DomCreative: "Creative & Content",
+    s1DomCustom: "Custom (type below)",
+    s1DomCustomPh: "Custom domain...",
+    s1SuccessLabel: "Success Criteria (how will you know it's done right?)",
+    s1SuccessPh: "e.g. Produces a prioritized list of 5-7 competitors with revenue estimates, funding stage, key differentiators, and market positioning map",
+    // Step 2
+    s2Title: "🔭 Scope — Boundaries & Constraints",
+    s2InLabel: "IN Scope (what to cover)",
+    s2InPh: "e.g. Latin American market, companies with >$1M ARR, AI/ML-powered products, both direct and indirect competitors",
+    s2OutLabel: "OUT of Scope (what to exclude)",
+    s2OutPh: "e.g. Companies with no AI component, markets outside LATAM, companies below $500K ARR, generic helpdesk software without AI",
+    s2DepthLabel: "Depth Level",
+    s2DepthQuick: "⚡ Quick Scan — Surface-level overview",
+    s2DepthStd: "🔍 Standard — Thorough but practical",
+    s2DepthDeep: "🔬 Deep Dive — Exhaustive analysis with sources",
+    s2DepthExp: "🧠 Expert — PhD-level depth, edge cases, citations",
+    s2SelfLearn: "Enable Self-Learning Loop (agent iterates & refines)",
+    // Step 3
+    s3Title: "🛠️ Tools — What Should the Agent Use?",
+    s3Desc: "Select tools the agent should leverage. These will be specified in the prompt.",
+    s3CustomLabel: "Custom Tools (one per line)",
+    s3CustomPh: "e.g.\nLinear API for project tracking\nGitHub API for code review\nTastyTrade API for options data",
+    // Tools
+    tWebSearch: "Web Search", tCodeExec: "Code Execution", tFileRW: "File R/W",
+    tApiCalls: "API Calls", tDataAnalysis: "Data Analysis", tBrowser: "Browser Automation",
+    tDatabase: "Database Query", tShell: "Shell/Terminal", tImageGen: "Image Gen",
+    tDocProcess: "Doc Processing", tScheduling: "Scheduling/Cron", tMemory: "Memory/VectorDB",
+    // Step 4
+    s4Title: "🧩 Task Decomposition — Break It Down",
+    s4Desc: "Divide the objective into sequential or parallel sub-tasks. Each sub-task gets its own focused prompt segment.",
+    s4Subtask: "Sub-task",
+    s4NamePh: "Sub-task name (e.g. Research Competitors)",
+    s4DescPh: "What this sub-task accomplishes and its deliverable...",
+    s4DataLabel: "Data Focus (specific data this sub-task concentrates on)",
+    s4DataPh: "e.g. Competitor product features, pricing pages, G2 reviews",
+    s4AddBtn: "+ Add Sub-task",
+    // Step 5
+    s5Title: "🎭 Role & Persona",
+    s5RoleLabel: "Who should the AI be?",
+    s5RolePh: "e.g. Senior competitive intelligence analyst with 10+ years in SaaS markets across Latin America, fluent in Portuguese and Spanish",
+    s5ToneLabel: "Tone & Style",
+    s5TonePro: "Professional & Analytical", s5ToneConcise: "Concise & Actionable",
+    s5ToneAcademic: "Academic & Rigorous", s5ToneCreative: "Creative & Exploratory",
+    s5ToneConv: "Conversational & Friendly", s5ToneTech: "Technical & Precise",
+    s5ToneExec: "Executive Summary Style",
+    // Step 6
+    s6Title: "📋 Output Format",
+    s6FormatLabel: "Primary Output Format",
+    s6FmtMd: "Markdown (structured with headers)", s6FmtJson: "JSON (machine-readable schema)",
+    s6FmtTable: "Tables (comparison matrix)", s6FmtBullets: "Bullet Lists (quick scannable)",
+    s6FmtNarrative: "Narrative (prose paragraphs)", s6FmtCode: "Code (scripts/configs)",
+    s6FmtMixed: "Mixed (best format per section)",
+    s6LenLabel: "Target Length",
+    s6LenBrief: "Brief (key points only, <500 words)",
+    s6LenMod: "Moderate (practical detail, 500-1500 words)",
+    s6LenComp: "Comprehensive (exhaustive, 1500-3000 words)",
+    s6LenUnlimited: "No length limit (as needed)",
+    s6CustomLabel: "Custom Format Instructions",
+    s6CustomPh: "e.g. Start with an executive summary table, then detailed sections, end with a risk matrix and action items numbered 1-10",
+    // Step 7
+    s7Title: "📚 Context & Data",
+    s7BgLabel: "Background Context",
+    s7BgPh: "e.g. We're a 6-month-old startup with 3 enterprise clients in Mexico and Brazil. Our product uses GPT-4 for ticket classification and response drafting. We're preparing a Series A pitch.",
+    s7DataLabel: "Input Data / Reference Material",
+    s7DataPh: "Paste any data, documents, URLs, or references the agent should work with...",
+    s7AudLabel: "Target Audience for Output",
+    s7AudPh: "e.g. Series A investors, internal product team, C-suite",
+    // Step 8
+    s8Title: "🚧 Constraints & Guardrails",
+    s8MustNotLabel: "Must NOT (what to avoid)",
+    s8MustNotPh: "e.g. Do not include companies with no public revenue data. Avoid speculation without clear sourcing. No generic advice — every point must be specific and actionable.",
+    s8MustLabel: "MUST (non-negotiable requirements)",
+    s8MustPh: "e.g. Must include revenue estimates with confidence levels. Must cite sources. Must provide a competitor positioning matrix.",
+    s8EdgeLabel: "Edge Cases & Known Risks",
+    s8EdgePh: "e.g. Some competitors may have stealth AI features not publicly disclosed. Market sizing in LATAM is unreliable — triangulate from multiple sources.",
+    // Step 9
+    s9Title: "🔄 Self-Learning Loop Configuration",
+    s9Desc: "Configure how the agent should iterate and refine its own output.",
+    s9IterLabel: "Iteration Strategy",
+    s9IterReflect: "Reflect & Refine (agent reviews own output, improves)",
+    s9IterValidate: "Validate Against Criteria (check against success criteria)",
+    s9IterResearch: "Research Gaps (identify missing info, research again)",
+    s9IterAll: "All of the Above (full self-improvement loop)",
+    s9MaxLabel: "Max Iterations",
+    s9Max1: "1 pass (quick review)", s9Max2: "2 passes (standard)",
+    s9Max3: "3 passes (thorough)", s9Max5: "5 passes (deep refinement)",
+    s9FocusLabel: "What should improve with each iteration?",
+    s9FocusPh: "e.g. Accuracy of claims, completeness of coverage, specificity of recommendations, clarity of presentation",
+    // Preview
+    prevTitle: "📝 Generated Prompt",
+    qComplete: "Complete", qSpecificity: "Specificity", qTokens: "~Tokens",
+    emptyMain: "Fill in the form to generate your structured prompt",
+    emptySub: "The prompt updates live as you type",
+    emptyMd: "Markdown output appears here",
+    emptyJson: "JSON output appears here",
+    copyReadyLabel: "💡 Copy-Ready",
+    copyReadyDesc: 'Click "Copy Prompt" in the header, or click inside the preview and Ctrl+A, Ctrl+C. The prompt is formatted for direct paste into any LLM.',
+    compatLabel: "🔗 Compatible With",
+    tagAnyLLM: "Any LLM",
+    tagLinearAgents: "Linear Agents",
+    // Prompt generation keys
+    pObjective: "OBJECTIVE", pRole: "ROLE", pSuccess: "SUCCESS CRITERIA",
+    pScope: "SCOPE", pInScope: "IN Scope", pOutScope: "OUT of Scope", pDepth: "Depth",
+    pTools: "TOOLS AVAILABLE", pToolsDesc: "The agent should use the following tools/methods:",
+    pDecomposition: "TASK DECOMPOSITION", pDecompDesc: "Break the objective into the following sub-tasks, each with concentrated data focus:",
+    pSubtask: "Sub-task", pDataFocus: "Data Focus",
+    pContext: "CONTEXT", pBackground: "Background", pInputData: "Input Data / References",
+    pAudience: "Target Audience",
+    pFormat: "OUTPUT FORMAT", pFormatLabel: "Format", pLength: "Length",
+    pCustomFormat: "Custom format instructions:",
+    pConstraints: "CONSTRAINTS", pMust: "MUST (non-negotiable)",
+    pMustNot: "MUST NOT (avoid at all costs)", pEdgeCases: "Edge Cases & Known Risks",
+    pSelfLearn: "SELF-LEARNING LOOP", pStrategy: "Strategy", pMaxIter: "Maximum iterations",
+    pFocus: "Focus improvement on:", pLoopStep1: "Review your own output against the success criteria",
+    pLoopStep2a: "Research to fill identified gaps", pLoopStep2b: "Refine and improve the identified areas",
+    pLoopStep3: "Produce an improved version",
+    pLoopStep4: "Repeat up to {n} iterations, stopping earlier if all success criteria are met",
+    // Templates
+    tplChoice: "Choose a template:\n\n1 = Competitive Analysis\n2 = Security Code Review\n\nType 1 or 2:",
+    tplReset: "Reset all fields? This cannot be undone.",
+    tplCopied: "✅ Copied!",
+    tplNoObj: "Fill in at least the Objective field first.",
+  },
+  es: {
+    headerSub: "— Traza el arco de la idea a la ejecución",
+    btnReset: "🔄 Limpiar",
+    btnTemplate: "📋 Plantilla",
+    btnCopy: "Copiar Prompt",
+    s1Title: "🎯 Objetivo — ¿Qué Quieres Lograr?",
+    s1ObjLabel: "Objetivo Principal (empieza con un verbo)",
+    s1ObjPh: "ej. Analizar el panorama competitivo para una startup SaaS que ofrece automatización de soporte al cliente con IA en América Latina",
+    s1DomLabel: "Dominio / Industria",
+    s1DomDefault: "— Selecciona o escribe personalizado —",
+    s1DomSW: "Ingeniería de Software", s1DomDS: "Ciencia de Datos y Analítica",
+    s1DomCyber: "Ciberseguridad", s1DomMkt: "Marketing y Crecimiento",
+    s1DomFin: "Finanzas y Trading", s1DomOps: "Operaciones y Automatización",
+    s1DomRes: "Investigación y Educación", s1DomProd: "Gestión de Producto",
+    s1DomLegal: "Legal y Cumplimiento", s1DomCreative: "Creatividad y Contenido",
+    s1DomCustom: "Personalizado (escribe abajo)",
+    s1DomCustomPh: "Dominio personalizado...",
+    s1SuccessLabel: "Criterios de Éxito (¿cómo sabes que se hizo bien?)",
+    s1SuccessPh: "ej. Produce una lista priorizada de 5-7 competidores con estimados de ingresos, etapa de funding, diferenciadores clave, y mapa de posicionamiento",
+    s2Title: "🔭 Alcance — Límites y Restricciones",
+    s2InLabel: "DENTRO del alcance (qué cubrir)",
+    s2InPh: "ej. Mercado latinoamericano, empresas con >$1M ARR, productos con IA/ML, competidores directos e indirectos",
+    s2OutLabel: "FUERA del alcance (qué excluir)",
+    s2OutPh: "ej. Empresas sin componente de IA, mercados fuera de LATAM, empresas con menos de $500K ARR, software genérico de helpdesk sin IA",
+    s2DepthLabel: "Nivel de Profundidad",
+    s2DepthQuick: "⚡ Escaneo Rápido — Vista general superficial",
+    s2DepthStd: "🔍 Estándar — Exhaustivo pero práctico",
+    s2DepthDeep: "🔬 Profundo — Análisis exhaustivo con fuentes",
+    s2DepthExp: "🧠 Experto — Nivel PhD, casos límite, citas",
+    s2SelfLearn: "Activar Bucle de Auto-Aprendizaje (el agente itera y refina)",
+    s3Title: "🛠️ Herramientas — ¿Qué Debe Usar el Agente?",
+    s3Desc: "Selecciona las herramientas que el agente debe utilizar. Se especificarán en el prompt.",
+    s3CustomLabel: "Herramientas Personalizadas (una por línea)",
+    s3CustomPh: "ej.\nAPI de Linear para gestión de proyectos\nAPI de GitHub para revisión de código\nAPI de TastyTrade para datos de opciones",
+    tWebSearch: "Búsqueda Web", tCodeExec: "Ejecución de Código", tFileRW: "Lectura/Escritura Archivos",
+    tApiCalls: "Llamadas API", tDataAnalysis: "Análisis de Datos", tBrowser: "Automatización Browser",
+    tDatabase: "Consulta BD", tShell: "Shell/Terminal", tImageGen: "Generación Imágenes",
+    tDocProcess: "Procesamiento Docs", tScheduling: "Programación/Cron", tMemory: "Memoria/VectorDB",
+    s4Title: "🧩 Descomposición de Tareas — Divídela",
+    s4Desc: "Divide el objetivo en subtareas secuenciales o paralelas. Cada subtarea obtiene su propio segmento de prompt enfocado.",
+    s4Subtask: "Subtarea",
+    s4NamePh: "Nombre de la subtarea (ej. Investigar Competidores)",
+    s4DescPh: "Qué logra esta subtarea y su entregable...",
+    s4DataLabel: "Enfoque de Datos (datos específicos en que se concentra esta subtarea)",
+    s4DataPh: "ej. Características de productos competidores, páginas de precios, reseñas en G2",
+    s4AddBtn: "+ Agregar Subtarea",
+    s5Title: "🎭 Rol y Persona",
+    s5RoleLabel: "¿Quién debe ser la IA?",
+    s5RolePh: "ej. Analista senior de inteligencia competitiva con 10+ años en mercados SaaS en América Latina, fluido en portugués y español",
+    s5ToneLabel: "Tono y Estilo",
+    s5TonePro: "Profesional y Analítico", s5ToneConcise: "Conciso y Accionable",
+    s5ToneAcademic: "Académico y Riguroso", s5ToneCreative: "Creativo y Exploratorio",
+    s5ToneConv: "Conversacional y Amigable", s5ToneTech: "Técnico y Preciso",
+    s5ToneExec: "Estilo de Resumen Ejecutivo",
+    s6Title: "📋 Formato de Salida",
+    s6FormatLabel: "Formato Principal de Salida",
+    s6FmtMd: "Markdown (estructurado con encabezados)", s6FmtJson: "JSON (schema legible por máquina)",
+    s6FmtTable: "Tablas (matriz de comparación)", s6FmtBullets: "Lista de Viñetas (escaneable)",
+    s6FmtNarrative: "Narrativo (párrafos en prosa)", s6FmtCode: "Código (scripts/configs)",
+    s6FmtMixed: "Mixto (mejor formato por sección)",
+    s6LenLabel: "Extensión Objetivo",
+    s6LenBrief: "Breve (solo puntos clave, <500 palabras)",
+    s6LenMod: "Moderado (detalle práctico, 500-1500 palabras)",
+    s6LenComp: "Comprensivo (exhaustivo, 1500-3000 palabras)",
+    s6LenUnlimited: "Sin límite de extensión (según necesidad)",
+    s6CustomLabel: "Instrucciones de Formato Personalizado",
+    s6CustomPh: "ej. Comenzar con tabla de resumen ejecutivo, luego secciones detalladas, terminar con matriz de riesgos y acción items numerados 1-10",
+    s7Title: "📚 Contexto y Datos",
+    s7BgLabel: "Contexto de Fondo",
+    s7BgPh: "ej. Somos una startup de 6 meses con 3 clientes enterprise en México y Brasil. Nuestro producto usa GPT-4 para clasificación de tickets y borradores de respuestas. Estamos preparando un pitch Serie A.",
+    s7DataLabel: "Datos de Entrada / Material de Referencia",
+    s7DataPh: "Pega cualquier dato, documentos, URLs, o referencias con los que el agente debe trabajar...",
+    s7AudLabel: "Audiencia Objetivo de la Salida",
+    s7AudPh: "ej. Inversores Serie A, equipo de producto interno, C-suite",
+    s8Title: "🚧 Restricciones y Guardarrails",
+    s8MustNotLabel: "NO Debe (qué evitar)",
+    s8MustNotPh: "ej. No incluir empresas sin datos públicos de ingresos. Evitar especulación sin fuentes claras. Sin consejos genéricos — cada punto debe ser específico y accionable.",
+    s8MustLabel: "DEBE (requisitos innegociables)",
+    s8MustPh: "ej. Debe incluir estimados de ingresos con niveles de confianza. Debe citar fuentes. Debe proveer una matriz de posicionamiento de competidores.",
+    s8EdgeLabel: "Casos Límite y Riesgos Conocidos",
+    s8EdgePh: "ej. Algunos competidores pueden tener funciones de IA stealth no reveladas públicamente. El sizing de mercado en LATAM no es confiable — triangular desde múltiples fuentes.",
+    s9Title: "🔄 Configuración del Bucle de Auto-Aprendizaje",
+    s9Desc: "Configura cómo el agente debe iterar y refinar su propia salida.",
+    s9IterLabel: "Estrategia de Iteración",
+    s9IterReflect: "Reflexionar y Refinar (el agente revisa su propia salida, mejora)",
+    s9IterValidate: "Validar contra Criterios (verificar contra criterios de éxito)",
+    s9IterResearch: "Investigar Brechas (identificar info faltante, investigar de nuevo)",
+    s9IterAll: "Todo lo Anterior (bucle completo de auto-mejora)",
+    s9MaxLabel: "Iteraciones Máximas",
+    s9Max1: "1 pasada (revisión rápida)", s9Max2: "2 pasadas (estándar)",
+    s9Max3: "3 pasadas (exhaustivo)", s9Max5: "5 pasadas (refinamiento profundo)",
+    s9FocusLabel: "¿Qué debe mejorar con cada iteración?",
+    s9FocusPh: "ej. Precisión de afirmaciones, completitud de cobertura, especificidad de recomendaciones, claridad de presentación",
+    prevTitle: "📝 Prompt Generado",
+    qComplete: "Completo", qSpecificity: "Especificidad", qTokens: "~Tokens",
+    emptyMain: "Llena el formulario para generar tu prompt estructurado",
+    emptySub: "El prompt se actualiza en vivo mientras escribes",
+    emptyMd: "La salida en Markdown aparece aquí",
+    emptyJson: "La salida en JSON aparece aquí",
+    copyReadyLabel: "💡 Listo para Copiar",
+    copyReadyDesc: 'Haz clic en "Copiar Prompt" en el encabezado, o haz clic dentro de la vista previa y Ctrl+A, Ctrl+C. El prompt está formateado para pegar directamente en cualquier LLM.',
+    compatLabel: "🔗 Compatible Con",
+    tagAnyLLM: "Cualquier LLM",
+    tagLinearAgents: "Agentes Linear",
+    pObjective: "OBJETIVO", pRole: "ROL", pSuccess: "CRITERIOS DE ÉXITO",
+    pScope: "ALCANCE", pInScope: "DENTRO del alcance", pOutScope: "FUERA del alcance", pDepth: "Profundidad",
+    pTools: "HERRAMIENTAS DISPONIBLES", pToolsDesc: "El agente debe usar las siguientes herramientas/métodos:",
+    pDecomposition: "DESCOMPOSICIÓN DE TAREAS", pDecompDesc: "Dividir el objetivo en las siguientes subtareas, cada una con enfoque de datos concentrado:",
+    pSubtask: "Subtarea", pDataFocus: "Enfoque de Datos",
+    pContext: "CONTEXTO", pBackground: "Contexto de Fondo", pInputData: "Datos de Entrada / Referencias",
+    pAudience: "Audiencia Objetivo",
+    pFormat: "FORMATO DE SALIDA", pFormatLabel: "Formato", pLength: "Extensión",
+    pCustomFormat: "Instrucciones de formato personalizado:",
+    pConstraints: "RESTRICCIONES", pMust: "DEBE (innegociable)",
+    pMustNot: "NO DEBE (evitar a toda costa)", pEdgeCases: "Casos Límite y Riesgos Conocidos",
+    pSelfLearn: "BUCLE DE AUTO-APRENDIZAJE", pStrategy: "Estrategia", pMaxIter: "Iteraciones máximas",
+    pFocus: "Enfocar mejora en:", pLoopStep1: "Revisar tu propia salida contra los criterios de éxito",
+    pLoopStep2a: "Investigar para llenar brechas identificadas", pLoopStep2b: "Refinar y mejorar las áreas identificadas",
+    pLoopStep3: "Producir una versión mejorada",
+    pLoopStep4: "Repetir hasta {n} iteraciones, deteniendo antes si todos los criterios de éxito se cumplen",
+    tplChoice: "Elige una plantilla:\n\n1 = Análisis Competitivo\n2 = Revisión de Seguridad de Código\n\nEscribe 1 o 2:",
+    tplReset: "¿Limpiar todos los campos? No se puede deshacer.",
+    tplCopied: "✅ ¡Copiado!",
+    tplNoObj: "Llena al menos el campo de Objetivo primero.",
+  },
+  pt: {
+    headerSub: "— Traça o arco da ideia à execução",
+    btnReset: "🔄 Limpar",
+    btnTemplate: "📋 Template",
+    btnCopy: "Copiar Prompt",
+    s1Title: "🎯 Objetivo — O Que Você Quer Fazer?",
+    s1ObjLabel: "Objetivo Principal (comece com um verbo)",
+    s1ObjPh: "ex. Analisar o cenário competitivo para uma startup SaaS que oferece automação de suporte ao cliente com IA na América Latina",
+    s1DomLabel: "Domínio / Indústria",
+    s1DomDefault: "— Selecione ou digite personalizado —",
+    s1DomSW: "Engenharia de Software", s1DomDS: "Ciência de Dados e Análise",
+    s1DomCyber: "Cibersegurança", s1DomMkt: "Marketing e Crescimento",
+    s1DomFin: "Finanças e Trading", s1DomOps: "Operações e Automação",
+    s1DomRes: "Pesquisa e Educação", s1DomProd: "Gestão de Produto",
+    s1DomLegal: "Legal e Conformidade", s1DomCreative: "Criatividade e Conteúdo",
+    s1DomCustom: "Personalizado (digite abaixo)",
+    s1DomCustomPh: "Domínio personalizado...",
+    s1SuccessLabel: "Critérios de Sucesso (como saber que ficou bem feito?)",
+    s1SuccessPh: "ex. Produz uma lista priorizada de 5-7 concorrentes com estimativas de receita, estágio de investimento, diferenciais chave e mapa de posicionamento",
+    s2Title: "🔭 Escopo — Limites e Restrições",
+    s2InLabel: "DENTRO do escopo (o que cobrir)",
+    s2InPh: "ex. Mercado latino-americano, empresas com >$1M ARR, produtos com IA/ML, concorrentes diretos e indiretos",
+    s2OutLabel: "FORA do escopo (o que excluir)",
+    s2OutPh: "ex. Empresas sem componente de IA, mercados fora da LATAM, empresas abaixo de $500K ARR, software genérico de helpdesk sem IA",
+    s2DepthLabel: "Nível de Profundidade",
+    s2DepthQuick: "⚡ Escaneo Rápido — Visão geral superficial",
+    s2DepthStd: "🔍 Padrão — Detalhado mas prático",
+    s2DepthDeep: "🔬 Profundo — Análise exaustiva com fontes",
+    s2DepthExp: "🧠 Especialista — Nível PhD, casos limite, citações",
+    s2SelfLearn: "Ativar Loop de Auto-Aprendizado (agente itera e refina)",
+    s3Title: "🛠️ Ferramentas — O Que o Agente Deve Usar?",
+    s3Desc: "Selecione as ferramentas que o agente deve usar. Elas serão especificadas no prompt.",
+    s3CustomLabel: "Ferramentas Personalizadas (uma por linha)",
+    s3CustomPh: "ex.\nAPI do Linear para gestão de projetos\nAPI do GitHub para revisão de código\nAPI do TastyTrade para dados de opções",
+    tWebSearch: "Busca Web", tCodeExec: "Execução de Código", tFileRW: "Leitura/Escrita Arquivos",
+    tApiCalls: "Chamadas API", tDataAnalysis: "Análise de Dados", tBrowser: "Automação Browser",
+    tDatabase: "Consulta BD", tShell: "Shell/Terminal", tImageGen: "Geração de Imagens",
+    tDocProcess: "Processamento Docs", tScheduling: "Agendamento/Cron", tMemory: "Memória/VectorDB",
+    s4Title: "🧩 Decomposição de Tarefas — Divida em Partes",
+    s4Desc: "Divida o objetivo em subtarefas sequenciais ou paralelas. Cada subtarefa recebe seu próprio segmento de prompt focado.",
+    s4Subtask: "Subtarefa",
+    s4NamePh: "Nome da subtarefa (ex. Pesquisar Concorrentes)",
+    s4DescPh: "O que esta subtarefa realiza e seu entregável...",
+    s4DataLabel: "Foco de Dados (dados específicos que esta subtarefa concentra)",
+    s4DataPh: "ex. Recursos de produtos concorrentes, páginas de preços, avaliações no G2",
+    s4AddBtn: "+ Adicionar Subtarefa",
+    s5Title: "🎭 Papel e Persona",
+    s5RoleLabel: "Quem a IA deve ser?",
+    s5RolePh: "ex. Analista sênior de inteligência competitiva com 10+ anos em mercados SaaS na América Latina, fluente em português e espanhol",
+    s5ToneLabel: "Tom e Estilo",
+    s5TonePro: "Profissional e Analítico", s5ToneConcise: "Conciso e Acionável",
+    s5ToneAcademic: "Acadêmico e Rigoroso", s5ToneCreative: "Criativo e Exploratório",
+    s5ToneConv: "Conversacional e Amigável", s5ToneTech: "Técnico e Preciso",
+    s5ToneExec: "Estilo de Resumo Executivo",
+    s6Title: "📋 Formato de Saída",
+    s6FormatLabel: "Formato Principal de Saída",
+    s6FmtMd: "Markdown (estruturado com cabeçalhos)", s6FmtJson: "JSON (schema legível por máquina)",
+    s6FmtTable: "Tabelas (matriz de comparação)", s6FmtBullets: "Lista de Marcadores (escaneável)",
+    s6FmtNarrative: "Narrativo (parágrafos em prosa)", s6FmtCode: "Código (scripts/configs)",
+    s6FmtMixed: "Misto (melhor formato por seção)",
+    s6LenLabel: "Extensão Alvo",
+    s6LenBrief: "Breve (apenas pontos-chave, <500 palavras)",
+    s6LenMod: "Moderado (detalhe prático, 500-1500 palavras)",
+    s6LenComp: "Abrangente (exaustivo, 1500-3000 palavras)",
+    s6LenUnlimited: "Sem limite de extensão (conforme necessário)",
+    s6CustomLabel: "Instruções de Formato Personalizado",
+    s6CustomPh: "ex. Começar com tabela de resumo executivo, depois seções detalhadas, terminar com matriz de riscos e itens de ação numerados 1-10",
+    s7Title: "📚 Contexto e Dados",
+    s7BgLabel: "Contexto de Fundo",
+    s7BgPh: "ex. Somos uma startup de 6 meses com 3 clientes enterprise no México e Brasil. Nosso produto usa GPT-4 para classificação de tickets e rascunhos de respostas. Estamos preparando um pitch Série A.",
+    s7DataLabel: "Dados de Entrada / Material de Referência",
+    s7DataPh: "Cole quaisquer dados, documentos, URLs ou referências com os quais o agente deve trabalhar...",
+    s7AudLabel: "Público-Alvo da Saída",
+    s7AudPh: "ex. Investidores Série A, equipe de produto interna, C-suite",
+    s8Title: "🚧 Restrições e Guarda-corrimos",
+    s8MustNotLabel: "NÃO Deve (o que evitar)",
+    s8MustNotPh: "ex. Não incluir empresas sem dados públicos de receita. Evitar especulação sem fontes claras. Sem conselhos genéricos — cada ponto deve ser específico e acionável.",
+    s8MustLabel: "DEVE (requisitos inegociáveis)",
+    s8MustPh: "ex. Deve incluir estimativas de receita com níveis de confiança. Deve citar fontes. Deve fornecer uma matriz de posicionamento de concorrentes.",
+    s8EdgeLabel: "Casos Limite e Riscos Conhecidos",
+    s8EdgePh: "ex. Alguns concorrentes podem ter recursos de IA stealth não divulgados publicamente. O sizing de mercado na LATAM não é confiável — triangular de múltiplas fontes.",
+    s9Title: "🔄 Configuração do Loop de Auto-Aprendizado",
+    s9Desc: "Configure como o agente deve iterar e refinar sua própria saída.",
+    s9IterLabel: "Estratégia de Iteração",
+    s9IterReflect: "Refletir e Refinar (agente revisa sua própria saída, melhora)",
+    s9IterValidate: "Validar contra Critérios (verificar contra critérios de sucesso)",
+    s9IterResearch: "Pesquisar Lacunas (identificar info faltante, pesquisar novamente)",
+    s9IterAll: "Tudo o Acima (loop completo de auto-melhoria)",
+    s9MaxLabel: "Iterações Máximas",
+    s9Max1: "1 passagem (revisão rápida)", s9Max2: "2 passagens (padrão)",
+    s9Max3: "3 passagens (detalhado)", s9Max5: "5 passagens (refinamento profundo)",
+    s9FocusLabel: "O que deve melhorar a cada iteração?",
+    s9FocusPh: "ex. Precisão de afirmações, completude de cobertura, especificidade de recomendações, clareza de apresentação",
+    prevTitle: "📝 Prompt Gerado",
+    qComplete: "Completo", qSpecificity: "Especificidade", qTokens: "~Tokens",
+    emptyMain: "Preencha o formulário para gerar seu prompt estruturado",
+    emptySub: "O prompt é atualizado ao vivo enquanto você digita",
+    emptyMd: "A saída em Markdown aparece aqui",
+    emptyJson: "A saída em JSON aparece aqui",
+    copyReadyLabel: "💡 Pronto para Copiar",
+    copyReadyDesc: 'Clique em "Copiar Prompt" no cabeçalho, ou clique dentro da pré-visualização e Ctrl+A, Ctrl+C. O prompt está formatado para colar diretamente em qualquer LLM.',
+    compatLabel: "🔗 Compatível Com",
+    tagAnyLLM: "Qualquer LLM",
+    tagLinearAgents: "Agentes Linear",
+    pObjective: "OBJETIVO", pRole: "PAPEL", pSuccess: "CRITÉRIOS DE SUCESSO",
+    pScope: "ESCOPO", pInScope: "DENTRO do escopo", pOutScope: "FORA do escopo", pDepth: "Profundidade",
+    pTools: "FERRAMENTAS DISPONÍVEIS", pToolsDesc: "O agente deve usar as seguintes ferramentas/métodos:",
+    pDecomposition: "DECOMPOSIÇÃO DE TAREFAS", pDecompDesc: "Dividir o objetivo nas seguintes subtarefas, cada uma com foco de dados concentrado:",
+    pSubtask: "Subtarefa", pDataFocus: "Foco de Dados",
+    pContext: "CONTEXTO", pBackground: "Contexto de Fundo", pInputData: "Dados de Entrada / Referências",
+    pAudience: "Público-Alvo",
+    pFormat: "FORMATO DE SAÍDA", pFormatLabel: "Formato", pLength: "Extensão",
+    pCustomFormat: "Instruções de formato personalizado:",
+    pConstraints: "RESTRIÇÕES", pMust: "DEVE (inegociável)",
+    pMustNot: "NÃO DEVE (evitar a todo custo)", pEdgeCases: "Casos Limite e Riscos Conhecidos",
+    pSelfLearn: "LOOP DE AUTO-APRENDIZADO", pStrategy: "Estratégia", pMaxIter: "Iterações máximas",
+    pFocus: "Focar melhoria em:", pLoopStep1: "Revisar sua própria saída contra os critérios de sucesso",
+    pLoopStep2a: "Pesquisar para preencher lacunas identificadas", pLoopStep2b: "Refinar e melhorar as áreas identificadas",
+    pLoopStep3: "Produzir uma versão melhorada",
+    pLoopStep4: "Repetir até {n} iterações, parando antes se todos os critérios de sucesso forem atendidos",
+    tplChoice: "Escolha um template:\n\n1 = Análise Competitiva\n2 = Revisão de Segurança de Código\n\nDigite 1 ou 2:",
+    tplReset: "Limpar todos os campos? Isso não pode ser desfeito.",
+    tplCopied: "✅ Copiado!",
+    tplNoObj: "Preencha pelo menos o campo de Objetivo primeiro.",
+  }
+};
+
+// ============================================================
+// STATE & LOGIC
+// ============================================================
+let selectedTools = new Set();
+let subtaskCounter = 1;
+let currentLang = 'en';
+
+function t(key) {
+  return I18N[currentLang][key] || I18N['en'][key] || key;
+}
+
+function changeLang(lang) {
+  currentLang = lang;
+  applyLang();
+  updatePreview();
+}
+
+function applyLang() {
+  // Translate all data-i18n elements
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const val = t(key);
+    if (el.tagName === 'OPTION' || el.tagName === 'INPUT' && el.type !== 'text') {
+      el.textContent = val;
+    } else if (el.tagName === 'INPUT' && el.type === 'text') {
+      // don't change value, only placeholder handled separately
+    } else {
+      el.textContent = val;
+    }
+  });
+  // Translate placeholders
+  document.querySelectorAll('[data-ph]').forEach(el => {
+    const key = el.getAttribute('data-ph');
+    el.placeholder = t(key);
+  });
+  // Translate page title
+  document.title = 'Trammel PE ' + t('headerSub');
+  // Re-translate subtask labels
+  document.querySelectorAll('.subtask-num').forEach((el, i) => {
+    el.textContent = t('s4Subtask') + ' ' + (i + 1);
+  });
+  // Translate empty states
+  updatePreview();
+}
+
+function handleDomain() {
+  const sel = document.getElementById('domain');
+  const custom = document.getElementById('domainCustom');
+  custom.style.display = sel.value === 'custom' ? 'block' : 'none';
+  updatePreview();
+}
+
+// ============ TOOL SELECTION ============
+function toggleTool(el) {
+  const tool = el.dataset.tool;
+  if (selectedTools.has(tool)) {
+    selectedTools.delete(tool);
+    el.classList.remove('selected');
+  } else {
+    selectedTools.add(tool);
+    el.classList.add('selected');
+  }
+  updatePreview();
+}
+
+// ============ SUBTASKS ============
+function addSubtask() {
+  subtaskCounter++;
+  const num = subtaskCounter;
+  const card = document.createElement('div');
+  card.className = 'subtask-card';
+  card.id = `subtask-${num}`;
+  card.innerHTML = `
+    <button class="remove-subtask" onclick="removeSubtask(${num})" title="Remove">✕</button>
+    <div class="subtask-num">${t('s4Subtask')} ${num}</div>
+    <input type="text" class="subtask-name" data-ph="s4NamePh" placeholder="${t('s4NamePh')}" oninput="updatePreview()">
+    <textarea class="subtask-desc" data-ph="s4DescPh" placeholder="${t('s4DescPh')}" oninput="updatePreview()"></textarea>
+    <label style="margin-top:6px;margin-bottom:2px;">${t('s4DataLabel')}</label>
+    <input type="text" class="subtask-data" data-ph="s4DataPh" placeholder="${t('s4DataPh')}" oninput="updatePreview()">
+  `;
+  document.getElementById('subtaskList').appendChild(card);
+  updatePreview();
+}
+
+function removeSubtask(num) {
+  const el = document.getElementById(`subtask-${num}`);
+  if (el) { el.remove(); updatePreview(); }
+}
+
+// ============ TOGGLE ============
+function toggleSwitch(el) {
+  el.classList.toggle('on');
+  const on = el.classList.contains('on');
+  document.getElementById('selfLearnSection').style.display = on ? 'block' : 'none';
+  updatePreview();
+}
+
+// ============ GATHER DATA ============
+function gatherData() {
+  const domainVal = document.getElementById('domain').value;
+  const domain = domainVal === 'custom' ? document.getElementById('domainCustom').value : domainVal;
+  const subtasks = [];
+  document.querySelectorAll('.subtask-card').forEach(card => {
+    const name = card.querySelector('.subtask-name')?.value?.trim() || '';
+    const desc = card.querySelector('.subtask-desc')?.value?.trim() || '';
+    const data = card.querySelector('.subtask-data')?.value?.trim() || '';
+    if (name || desc || data) subtasks.push({ name, desc, data });
+  });
+  const tools = [...selectedTools];
+  const customToolsRaw = document.getElementById('customTools').value.trim();
+  if (customToolsRaw) {
+    customToolsRaw.split('\n').forEach(l => { const tt = l.trim(); if (tt) tools.push(tt); });
+  }
+  const selfLearn = document.getElementById('toggleSelfLearn').classList.contains('on');
+  return {
+    objective: document.getElementById('objective').value.trim(),
+    domain, successCriteria: document.getElementById('successCriteria').value.trim(),
+    inScope: document.getElementById('inScope').value.trim(),
+    outScope: document.getElementById('outScope').value.trim(),
+    depth: document.getElementById('depth').value,
+    selfLearn, iterationStrategy: document.getElementById('iterationStrategy').value,
+    maxIterations: document.getElementById('maxIterations').value,
+    improvementFocus: document.getElementById('improvementFocus').value.trim(),
+    tools, subtasks,
+    role: document.getElementById('role').value.trim(),
+    tone: document.getElementById('tone').value,
+    format: document.getElementById('format').value,
+    lengthTarget: document.getElementById('lengthTarget').value,
+    customFormat: document.getElementById('customFormat').value.trim(),
+    background: document.getElementById('background').value.trim(),
+    inputData: document.getElementById('inputData').value.trim(),
+    audience: document.getElementById('audience').value.trim(),
+    constraints: document.getElementById('constraints').value.trim(),
+    mustDo: document.getElementById('mustDo').value.trim(),
+    edgeCases: document.getElementById('edgeCases').value.trim(),
+  };
+}
+
+// ============ TOOL NAME MAP ============
+function toolName(id) {
+  const map = {
+    web_search: t('tWebSearch'), code_execution: t('tCodeExec'), file_read_write: t('tFileRW'),
+    api_calls: t('tApiCalls'), data_analysis: t('tDataAnalysis'), browser_automation: t('tBrowser'),
+    database: t('tDatabase'), shell_terminal: t('tShell'), image_generation: t('tImageGen'),
+    document_processing: t('tDocProcess'), scheduling_cron: t('tScheduling'), memory_vector_db: t('tMemory'),
+  };
+  return map[id] || id;
+}
+
+function depthLabel(v) {
+  const m = { quick: t('s2DepthQuick'), standard: t('s2DepthStd'), deep: t('s2DepthDeep'), expert: t('s2DepthExp') };
+  return m[v] || v;
+}
+function toneLabel(v) {
+  const m = { professional: t('s5TonePro'), concise: t('s5ToneConcise'), academic: t('s5ToneAcademic'),
+    creative: t('s5ToneCreative'), conversational: t('s5ToneConv'), technical: t('s5ToneTech'), executive: t('s5ToneExec') };
+  return m[v] || v;
+}
+function formatLabel(v) {
+  const m = { markdown: t('s6FmtMd'), json: t('s6FmtJson'), table: t('s6FmtTable'), bulletlist: t('s6FmtBullets'),
+    narrative: t('s6FmtNarrative'), code: t('s6FmtCode'), mixed: t('s6FmtMixed') };
+  return m[v] || v;
+}
+function iterLabel(v) {
+  const m = { reflect: t('s9IterReflect'), validate: t('s9IterValidate'), research_more: t('s9IterResearch'), all: t('s9IterAll') };
+  return m[v] || v;
+}
+function lengthLabel(v) {
+  const m = { brief: currentLang==='es'?'Breve (<500 palabras)':currentLang==='pt'?'Breve (<500 palavras)':'Brief (<500 words)',
+    moderate: currentLang==='es'?'Moderado (500-1500 palabras)':currentLang==='pt'?'Moderado (500-1500 palavras)':'Moderate (500-1500 words)',
+    comprehensive: currentLang==='es'?'Comprensivo (1500-3000 palabras)':currentLang==='pt'?'Abrangente (1500-3000 palavras)':'Comprehensive (1500-3000 words)',
+    unlimited: currentLang==='es'?'Sin límite':currentLang==='pt'?'Sem limite':'No length limit' };
+  return m[v] || v;
+}
+
+// ============ BUILD PROMPT ============
+function buildPrompt(d) {
+  if (!d.objective) return null;
+  let s = [];
+  s.push(`# 🎯 ${t('pObjective')}`);
+  s.push(d.objective);
+  if (d.domain) s.push(`\n${currentLang==='es'?'Dominio':currentLang==='pt'?'Domínio':'Domain'}: ${d.domain}`);
+
+  if (d.role) {
+    s.push(`\n# 🎭 ${t('pRole')}`);
+    s.push(`${currentLang==='es'?'Eres':currentLang==='pt'?'Você é':'You are'} ${d.role}.`);
+    s.push(`${currentLang==='es'?'Tono':currentLang==='pt'?'Tom':'Tone'}: ${toneLabel(d.tone)}`);
+  } else {
+    s.push(`\n# 🎭 ${t('pRole')}`);
+    s.push(`${currentLang==='es'?'Tono':currentLang==='pt'?'Tom':'Tone'}: ${toneLabel(d.tone)}`);
+  }
+
+  if (d.successCriteria) {
+    s.push(`\n# ✅ ${t('pSuccess')}`);
+    s.push(d.successCriteria);
+  }
+
+  s.push(`\n# 🔭 ${t('pScope')}`);
+  if (d.inScope) { s.push(`\n## ${t('pInScope')}`); s.push(d.inScope); }
+  if (d.outScope) { s.push(`\n## ${t('pOutScope')}`); s.push(d.outScope); }
+  s.push(`\n${t('pDepth')}: ${depthLabel(d.depth)}`);
+
+  if (d.tools.length > 0) {
+    s.push(`\n# 🛠️ ${t('pTools')}`);
+    s.push(t('pToolsDesc'));
+    d.tools.forEach(tt => s.push(`- ${toolName(tt)}`));
+  }
+
+  if (d.subtasks.length > 0) {
+    s.push(`\n# 🧩 ${t('pDecomposition')}`);
+    s.push(t('pDecompDesc'));
+    d.subtasks.forEach((st, i) => {
+      s.push(`\n## ${t('pSubtask')} ${i + 1}${st.name ? ': ' + st.name : ''}`);
+      if (st.desc) s.push(st.desc);
+      if (st.data) s.push(`\n${t('pDataFocus')}: ${st.data}`);
+    });
+  }
+
+  if (d.background || d.inputData || d.audience) {
+    s.push(`\n# 📚 ${t('pContext')}`);
+    if (d.background) { s.push(`\n## ${t('pBackground')}`); s.push(d.background); }
+    if (d.inputData) { s.push(`\n## ${t('pInputData')}`); s.push(d.inputData); }
+    if (d.audience) { s.push(`\n## ${t('pAudience')}`); s.push(d.audience); }
+  }
+
+  s.push(`\n# 📋 ${t('pFormat')}`);
+  s.push(`${t('pFormatLabel')}: ${formatLabel(d.format)}`);
+  s.push(`${t('pLength')}: ${lengthLabel(d.lengthTarget)}`);
+  if (d.customFormat) s.push(`\n${t('pCustomFormat')}\n${d.customFormat}`);
+
+  if (d.constraints || d.mustDo || d.edgeCases) {
+    s.push(`\n# 🚧 ${t('pConstraints')}`);
+    if (d.mustDo) { s.push(`\n## ${t('pMust')}`); s.push(d.mustDo); }
+    if (d.constraints) { s.push(`\n## ${t('pMustNot')}`); s.push(d.constraints); }
+    if (d.edgeCases) { s.push(`\n## ${t('pEdgeCases')}`); s.push(d.edgeCases); }
+  }
+
+  if (d.selfLearn) {
+    s.push(`\n# 🔄 ${t('pSelfLearn')}`);
+    s.push(`${t('pStrategy')}: ${iterLabel(d.iterationStrategy)}`);
+    s.push(`${t('pMaxIter')}: ${d.maxIterations}`);
+    if (d.improvementFocus) s.push(`\n${t('pFocus')} ${d.improvementFocus}`);
+    s.push(`\n${currentLang==='es'?'Después de completar la salida inicial:':currentLang==='pt'?'Após completar a saída inicial:':'After completing your initial output:'}`);
+    s.push(`1. ${t('pLoopStep1')}`);
+    s.push(`2. ${d.iterationStrategy === 'research_more' || d.iterationStrategy === 'all' ? t('pLoopStep2a') : t('pLoopStep2b')}`);
+    s.push(`3. ${t('pLoopStep3')}`);
+    s.push(`4. ${t('pLoopStep4').replace('{n}', d.maxIterations)}`);
+  }
+
+  return s.join('\n');
+}
+
+// ============ BUILD JSON ============
+function buildJSON(d) {
+  const obj = {
+    objective: d.objective || '',
+    domain: d.domain || '',
+    success_criteria: d.successCriteria || '',
+    scope: { in_scope: d.inScope || '', out_of_scope: d.outScope || '', depth: d.depth || 'standard' },
+    tools: d.tools.map(tt => ({ id: tt, name: toolName(tt) })),
+    task_decomposition: d.subtasks.map((st, i) => ({
+      step: i + 1, name: st.name || `Step ${i + 1}`, description: st.desc || '', data_focus: st.data || '' })),
+    role: { persona: d.role || '', tone: d.tone || 'professional' },
+    output: { format: d.format || 'markdown', length: d.lengthTarget || 'moderate', custom_instructions: d.customFormat || '' },
+    context: { background: d.background || '', input_data: d.inputData || '', audience: d.audience || '' },
+    constraints: { must: d.mustDo || '', must_not: d.constraints || '', edge_cases: d.edgeCases || '' },
+  };
+  if (d.selfLearn) {
+    obj.self_learning = {
+      enabled: true, strategy: d.iterationStrategy,
+      max_iterations: parseInt(d.maxIterations), improvement_focus: d.improvementFocus || '' };
+  }
+  return obj;
+}
+
+// ============ QUALITY ============
+function computeQuality(d) {
+  const fields = [d.objective, d.successCriteria, d.inScope, d.outScope, d.role, d.background, d.constraints, d.mustDo];
+  const filled = fields.filter(f => f && f.trim().length > 10).length;
+  const completeness = Math.round((filled / fields.length) * 100);
+  const specFields = [d.successCriteria, d.inScope, d.outScope, d.constraints, d.mustDo, d.edgeCases];
+  const specFilled = specFields.filter(f => f && f.trim().length > 20).length;
+  const specificity = Math.round((specFilled / specFields.length) * 100);
+  const prompt = buildPrompt(d);
+  const tokens = Math.round((prompt ? prompt.length : 0) / 4);
+  return { completeness, specificity, tokens };
+}
+
+function updateQualityBar(q) {
+  const ce = document.getElementById('qComplete');
+  const se = document.getElementById('qSpecificity');
+  const te = document.getElementById('qTokens');
+  ce.textContent = q.completeness + '%';
+  ce.className = 'val ' + (q.completeness >= 70 ? 'good' : q.completeness >= 40 ? 'warn' : 'bad');
+  se.textContent = q.specificity + '%';
+  se.className = 'val ' + (q.specificity >= 70 ? 'good' : q.specificity >= 40 ? 'warn' : 'bad');
+  te.textContent = q.tokens >= 1000 ? (q.tokens / 1000).toFixed(1) + 'k' : q.tokens;
+  te.className = 'val good';
+}
+
+// ============ UPDATE PREVIEW ============
+function updatePreview() {
+  const d = gatherData();
+  const prompt = buildPrompt(d);
+  if (!prompt) {
+    document.getElementById('previewFormatted').innerHTML = `<div class="empty-state"><div class="emoji">⚡</div><p>${t('emptyMain')}</p><p style="font-size:0.78rem;margin-top:8px;">${t('emptySub')}</p></div>`;
+    document.getElementById('previewMarkdown').innerHTML = `<div class="empty-state"><div class="emoji">📝</div><p>${t('emptyMd')}</p></div>`;
+    document.getElementById('previewJSON').innerHTML = `<div class="empty-state"><div class="emoji">{ }</div><p>${t('emptyJson')}</p></div>`;
+    updateQualityBar({ completeness: 0, specificity: 0, tokens: 0 });
+    return;
+  }
+  const formatted = prompt
+    .replace(/^# (.+)$/gm, '<span style="color:var(--accent);font-weight:700;font-size:1rem;">$1</span>')
+    .replace(/^## (.+)$/gm, '<span style="color:var(--accent2);font-weight:600;font-size:0.9rem;">$1</span>')
+    .replace(/^- (.+)$/gm, '<span style="color:var(--accent3);">•</span> $1');
+  document.getElementById('previewFormatted').innerHTML = formatted;
+  document.getElementById('previewMarkdown').textContent = prompt;
+  document.getElementById('previewJSON').textContent = JSON.stringify(buildJSON(d), null, 2);
+  updateQualityBar(computeQuality(d));
+}
+
+// ============ TABS ============
+function switchTab(el, tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById(`tab-${tab}`).classList.add('active');
+}
+
+// ============ COPY ============
+function copyPrompt() {
+  const d = gatherData();
+  const prompt = buildPrompt(d);
+  if (!prompt) { alert(t('tplNoObj')); return; }
+  const activeTab = document.querySelector('.tab.active')?.textContent?.trim()?.toLowerCase() || 'formatted';
+  let content;
+  if (activeTab === 'json') {
+    content = JSON.stringify(buildJSON(d), null, 2);
+  } else {
+    content = prompt;
+  }
+  navigator.clipboard.writeText(content).then(() => {
+    const btn = document.querySelector('.btn-primary');
+    const orig = btn.innerHTML;
+    btn.innerHTML = t('tplCopied');
+    setTimeout(() => { btn.innerHTML = orig; }, 2000);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = content; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+  });
+}
+
+// ============ RESET ============
+function resetAll() {
+  if (!confirm(t('tplReset'))) return;
+  resetAllSilent();
+  updatePreview();
+}
+
+function resetAllSilent() {
+  document.querySelectorAll('textarea, input[type="text"]').forEach(el => el.value = '');
+  document.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
+  selectedTools.clear();
+  document.querySelectorAll('.tool-chip').forEach(el => el.classList.remove('selected'));
+  document.getElementById('toggleSelfLearn').classList.remove('on');
+  document.getElementById('selfLearnSection').style.display = 'none';
+  document.getElementById('domainCustom').style.display = 'none';
+  subtaskCounter = 1;
+  const list = document.getElementById('subtaskList');
+  list.innerHTML = `
+    <div class="subtask-card" id="subtask-1">
+      <button class="remove-subtask" onclick="removeSubtask(1)" title="Remove">✕</button>
+      <div class="subtask-num">${t('s4Subtask')} 1</div>
+      <input type="text" class="subtask-name" data-ph="s4NamePh" placeholder="${t('s4NamePh')}" oninput="updatePreview()">
+      <textarea class="subtask-desc" data-ph="s4DescPh" placeholder="${t('s4DescPh')}" oninput="updatePreview()"></textarea>
+      <label style="margin-top:6px;margin-bottom:2px;">${t('s4DataLabel')}</label>
+      <input type="text" class="subtask-data" data-ph="s4DataPh" placeholder="${t('s4DataPh')}" oninput="updatePreview()">
+    </div>`;
+}
+
+// ============ LOAD TEMPLATE ============
+function loadTemplate() {
+  const templates = {
+    competitive: {
+      objective: { en: 'Analyze the competitive landscape for a SaaS startup offering AI-powered customer support automation in Latin America', es: 'Analizar el panorama competitivo para una startup SaaS que ofrece automatización de soporte al cliente con IA en América Latina', pt: 'Analisar o cenário competitivo para uma startup SaaS que oferece automação de suporte ao cliente com IA na América Latina' },
+      domain: 'Marketing & Growth',
+      successCriteria: { en: 'Produces a prioritized list of 5-7 competitors with revenue estimates, funding stage, key differentiators, and market positioning map', es: 'Produce una lista priorizada de 5-7 competidores con estimados de ingresos, etapa de funding, diferenciadores clave y mapa de posicionamiento', pt: 'Produz uma lista priorizada de 5-7 concorrentes com estimativas de receita, estágio de investimento, diferenciais chave e mapa de posicionamento' },
+      inScope: { en: 'Latin American market, companies with >$1M ARR, AI/ML-powered products, both direct and indirect competitors', es: 'Mercado latinoamericano, empresas con >$1M ARR, productos con IA/ML, competidores directos e indirectos', pt: 'Mercado latino-americano, empresas com >$1M ARR, produtos com IA/ML, concorrentes diretos e indiretos' },
+      outScope: { en: 'Companies with no AI component, markets outside LATAM, companies below $500K ARR, generic helpdesk software without AI', es: 'Empresas sin componente de IA, mercados fuera de LATAM, empresas con menos de $500K ARR, software genérico de helpdesk sin IA', pt: 'Empresas sem componente de IA, mercados fora da LATAM, empresas abaixo de $500K ARR, software genérico de helpdesk sem IA' },
+      depth: 'deep',
+      role: { en: 'Senior competitive intelligence analyst with 10+ years in SaaS markets across Latin America, fluent in Portuguese and Spanish', es: 'Analista senior de inteligencia competitiva con 10+ años en mercados SaaS en América Latina, fluido en portugués y español', pt: 'Analista sênior de inteligência competitiva com 10+ anos em mercados SaaS na América Latina, fluente em português e espanhol' },
+      tone: 'professional', format: 'mixed', lengthTarget: 'comprehensive',
+      customFormat: { en: 'Start with an executive summary table, then detailed competitor profiles, end with a positioning matrix and strategic recommendations', es: 'Comenzar con tabla de resumen ejecutivo, luego perfiles detallados de competidores, terminar con matriz de posicionamiento y recomendaciones estratégicas', pt: 'Começar com tabela de resumo executivo, depois perfis detalhados de concorrentes, terminar com matriz de posicionamento e recomendações estratégicas' },
+      background: { en: 'We are a 6-month-old startup with 3 enterprise clients in Mexico and Brazil. Our product uses GPT-4 for ticket classification and response drafting. We are preparing a Series A pitch.', es: 'Somos una startup de 6 meses con 3 clientes enterprise en México y Brasil. Nuestro producto usa GPT-4 para clasificación de tickets y borradores de respuestas. Estamos preparando un pitch Serie A.', pt: 'Somos uma startup de 6 meses com 3 clientes enterprise no México e Brasil. Nosso produto usa GPT-4 para classificação de tickets e rascunhos de respostas. Estamos preparando um pitch Série A.' },
+      audience: { en: 'Series A investors and internal product team', es: 'Inversores Serie A y equipo de producto interno', pt: 'Investidores Série A e equipe de produto interna' },
+      constraints: { en: 'Do not include companies with no public revenue data. Avoid speculation without clear sourcing. No generic advice — every point must be specific and actionable.', es: 'No incluir empresas sin datos públicos de ingresos. Evitar especulación sin fuentes claras. Sin consejos genéricos — cada punto debe ser específico y accionable.', pt: 'Não incluir empresas sem dados públicos de receita. Evitar especulação sem fontes claras. Sem conselhos genéricos — cada ponto deve ser específico e acionável.' },
+      mustDo: { en: 'Must include revenue estimates with confidence levels. Must cite sources. Must provide a competitor positioning matrix.', es: 'Debe incluir estimados de ingresos con niveles de confianza. Debe citar fuentes. Debe proveer una matriz de posicionamiento de competidores.', pt: 'Deve incluir estimativas de receita com níveis de confiança. Deve citar fontes. Deve fornecer uma matriz de posicionamento de concorrentes.' },
+      edgeCases: { en: 'Some competitors may have stealth AI features not publicly disclosed. Market sizing in LATAM is unreliable — triangulate from multiple sources.', es: 'Algunos competidores pueden tener funciones de IA stealth no reveladas públicamente. El sizing de mercado en LATAM no es confiable — triangular desde múltiples fuentes.', pt: 'Alguns concorrentes podem ter recursos de IA stealth não divulgados publicamente. O sizing de mercado na LATAM não é confiável — triangular de múltiplas fontes.' },
+      selfLearn: true, iterationStrategy: 'all', maxIterations: '2',
+      improvementFocus: { en: 'Accuracy of revenue claims, completeness of competitor coverage, specificity of strategic recommendations', es: 'Precisión de afirmaciones de ingresos, completitud de cobertura de competidores, especificidad de recomendaciones estratégicas', pt: 'Precisão das afirmações de receita, completude da cobertura de concorrentes, especificidade das recomendações estratégicas' },
+      tools: ['web_search', 'data_analysis'],
+      subtasks: [
+        { name: { en: 'Identify Competitors', es: 'Identificar Competidores', pt: 'Identificar Concorrentes' },
+          desc: { en: 'Research and identify all relevant competitors in the LATAM AI customer support space', es: 'Investigar e identificar todos los competidores relevantes en el espacio de soporte al cliente con IA en LATAM', pt: 'Pesquisar e identificar todos os concorrentes relevantes no espaço de suporte ao cliente com IA na LATAM' },
+          data: { en: 'Competitor websites, G2/Capterra listings, LinkedIn company pages, funding databases', es: 'Sitios web de competidores, listados en G2/Capterra, páginas de LinkedIn, bases de datos de funding', pt: 'Sites de concorrentes, listagens no G2/Capterra, páginas de empresas no LinkedIn, bancos de dados de investimento' } },
+        { name: { en: 'Analyze Positioning', es: 'Analizar Posicionamiento', pt: 'Analisar Posicionamento' },
+          desc: { en: 'Map each competitor on a positioning matrix: price, features, market segment, geographic focus', es: 'Mapear cada competidor en una matriz de posicionamiento: precio, funciones, segmento de mercado, enfoque geográfico', pt: 'Mapear cada concorrente em uma matriz de posicionamento: preço, recursos, segmento de mercado, foco geográfico' },
+          data: { en: 'Product pages, pricing pages, feature comparison tables, customer testimonials', es: 'Páginas de producto, páginas de precios, tablas de comparación, testimonios de clientes', pt: 'Páginas de produto, páginas de preços, tabelas de comparação, depoimentos de clientes' } },
+        { name: { en: 'Synthesize Strategy', es: 'Sintetizar Estrategia', pt: 'Sintetizar Estratégia' },
+          desc: { en: 'Based on the competitive landscape, identify gaps and opportunities for our product', es: 'Basado en el panorama competitivo, identificar brechas y oportunidades para nuestro producto', pt: 'Com base no cenário competitivo, identificar lacunas e oportunidades para nosso produto' },
+          data: { en: 'Competitor weakness patterns, underserved segments, pricing gaps, feature gaps', es: 'Patrones de debilidades de competidores, segmentos desatendidos, brechas de precios, brechas de funciones', pt: 'Padrões de fraquezas de concorrentes, segmentos desatendidos, lacunas de preços, lacunas de recursos' } },
+      ],
+    },
+  };
+
+  const name = prompt(t('tplChoice'));
+  if (!name) return;
+  const t2 = templates.competitive;
+  const L = currentLang;
+
+  resetAllSilent();
+  document.getElementById('objective').value = val(t2.objective, L);
+  document.getElementById('domain').value = t2.domain;
+  document.getElementById('successCriteria').value = val(t2.successCriteria, L);
+  document.getElementById('inScope').value = val(t2.inScope, L);
+  document.getElementById('outScope').value = val(t2.outScope, L);
+  document.getElementById('depth').value = t2.depth;
+  document.getElementById('role').value = val(t2.role, L);
+  document.getElementById('tone').value = t2.tone;
+  document.getElementById('format').value = t2.format;
+  document.getElementById('lengthTarget').value = t2.lengthTarget;
+  document.getElementById('customFormat').value = val(t2.customFormat, L);
+  document.getElementById('background').value = val(t2.background, L);
+  document.getElementById('audience').value = val(t2.audience, L);
+  document.getElementById('constraints').value = val(t2.constraints, L);
+  document.getElementById('mustDo').value = val(t2.mustDo, L);
+  document.getElementById('edgeCases').value = val(t2.edgeCases, L);
+  if (t2.selfLearn) {
+    document.getElementById('toggleSelfLearn').classList.add('on');
+    document.getElementById('selfLearnSection').style.display = 'block';
+    document.getElementById('iterationStrategy').value = t2.iterationStrategy;
+    document.getElementById('maxIterations').value = t2.maxIterations;
+    document.getElementById('improvementFocus').value = val(t2.improvementFocus, L);
+  }
+  t2.tools.forEach(tool => {
+    const chip = document.querySelector(`[data-tool="${tool}"]`);
+    if (chip) { selectedTools.add(tool); chip.classList.add('selected'); }
+  });
+  subtaskCounter = 0;
+  const list = document.getElementById('subtaskList');
+  list.innerHTML = '';
+  t2.subtasks.forEach((st) => {
+    subtaskCounter++;
+    const num = subtaskCounter;
+    const card = document.createElement('div');
+    card.className = 'subtask-card'; card.id = `subtask-${num}`;
+    card.innerHTML = `
+      <button class="remove-subtask" onclick="removeSubtask(${num})" title="Remove">✕</button>
+      <div class="subtask-num">${t('s4Subtask')} ${num}</div>
+      <input type="text" class="subtask-name" value="${val(st.name, L)}" data-ph="s4NamePh" placeholder="${t('s4NamePh')}" oninput="updatePreview()">
+      <textarea class="subtask-desc" data-ph="s4DescPh" placeholder="${t('s4DescPh')}" oninput="updatePreview()">${val(st.desc, L)}</textarea>
+      <label style="margin-top:6px;margin-bottom:2px;">${t('s4DataLabel')}</label>
+      <input type="text" class="subtask-data" value="${val(st.data, L)}" data-ph="s4DataPh" placeholder="${t('s4DataPh')}" oninput="updatePreview()">
+    `;
+    list.appendChild(card);
+  });
+  updatePreview();
+}
+
+function val(obj, lang) {
+  if (typeof obj === 'string') return obj;
+  return obj[lang] || obj['en'] || '';
+}
+
+// Initialize
+updatePreview();
+</script>
+</body>
+</html>
