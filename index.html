@@ -345,6 +345,116 @@ select {
 }
 .empty-state .emoji { font-size: 3rem; margin-bottom: 12px; }
 
+/* ===== UX: Collapsible sections ===== */
+.section-title { cursor: pointer; user-select: none; }
+.section-title:hover { opacity: 0.85; }
+.section-toggle { margin-left: auto; font-size: 0.7rem; transition: transform 0.2s; color: var(--text2); }
+.section-toggle.collapsed { transform: rotate(-90deg); }
+.section-body { overflow: hidden; transition: max-height 0.3s ease; max-height: 2000px; }
+.section-body.collapsed { max-height: 0; padding: 0; margin: 0; }
+.section-badge { font-size: 0.7rem; margin-left: 8px; opacity: 0; transition: opacity 0.2s; }
+.section-badge.visible { opacity: 1; }
+
+/* ===== UX: Progress sidebar dots ===== */
+.progress-dots {
+  position: fixed; right: 12px; top: 50%; transform: translateY(-50%);
+  display: flex; flex-direction: column; gap: 8px; z-index: 90;
+}
+.progress-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--border); border: 1px solid var(--border);
+  cursor: pointer; transition: all 0.2s; position: relative;
+}
+.progress-dot.filled { background: var(--accent3); border-color: var(--accent3); }
+.progress-dot:hover { transform: scale(1.4); }
+.progress-dot .dot-tooltip {
+  display: none; position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
+  background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+  padding: 4px 8px; font-size: 0.72rem; white-space: nowrap; color: var(--text);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.progress-dot:hover .dot-tooltip { display: block; }
+
+/* ===== UX: Mobile tabs ===== */
+.mobile-tabs {
+  display: none; background: var(--surface); border-bottom: 1px solid var(--border);
+  position: sticky; top: 64px; z-index: 99;
+}
+.mobile-tab {
+  flex: 1; padding: 12px; text-align: center; font-size: 0.9rem; font-weight: 600;
+  cursor: pointer; color: var(--text2); border-bottom: 2px solid transparent;
+  transition: all 0.2s; background: none; border-top: none; border-left: none; border-right: none;
+}
+.mobile-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.mobile-tab:hover { color: var(--accent); }
+
+/* ===== UX: Onboarding overlay ===== */
+.onboarding-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  z-index: 400; align-items: center; justify-content: center; padding: 20px;
+}
+.onboarding-overlay.open { display: flex; }
+.onboarding-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  padding: 32px; max-width: 480px; width: 100%; text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.onboarding-card h2 {
+  font-size: 1.5rem; margin-bottom: 12px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.onboarding-card p { color: var(--text2); font-size: 0.9rem; line-height: 1.6; margin-bottom: 16px; }
+.onboarding-steps { text-align: left; margin: 16px 0; }
+.onboarding-step {
+  display: flex; align-items: flex-start; gap: 10px;
+  margin-bottom: 10px; font-size: 0.85rem; color: var(--text);
+}
+.onboarding-step .step-num {
+  background: var(--accent); color: var(--bg); min-width: 22px; height: 22px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; font-weight: 700; flex-shrink: 0;
+}
+.onboarding-actions { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+
+/* ===== UX: Auto-save indicator ===== */
+.autosave-indicator {
+  position: fixed; bottom: 16px; right: 16px; font-size: 0.72rem;
+  color: var(--text2); z-index: 80; display: flex; align-items: center; gap: 6px;
+  opacity: 0; transition: opacity 0.3s;
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 4px 10px; border-radius: 20px;
+}
+.autosave-indicator.show { opacity: 1; }
+
+/* ===== UX: Keyboard shortcuts hint ===== */
+.shortcuts-hint {
+  position: fixed; bottom: 16px; left: 16px; font-size: 0.68rem;
+  color: var(--text2); z-index: 80; opacity: 0.5; transition: opacity 0.2s;
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 4px 10px; border-radius: 20px; cursor: pointer;
+}
+.shortcuts-hint:hover { opacity: 1; }
+.shortcuts-modal {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+  z-index: 500; align-items: center; justify-content: center; padding: 20px;
+}
+.shortcuts-modal.open { display: flex; }
+.shortcuts-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px; max-width: 380px; width: 100%;
+}
+.shortcuts-card h3 { color: var(--accent); margin-bottom: 14px; font-size: 1rem; }
+.shortcut-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 0; font-size: 0.82rem; border-bottom: 1px solid var(--border);
+}
+.shortcut-row:last-child { border-bottom: none; }
+.shortcut-key {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 4px;
+  padding: 2px 8px; font-family: monospace; font-size: 0.78rem; color: var(--accent);
+}
+
 @media (max-width: 768px) {
   .container { flex-direction: column; height: auto; }
   .form-panel, .preview-panel { width: 100%; border-right: none; }
@@ -352,6 +462,11 @@ select {
   .tool-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
   .app-header { flex-wrap: wrap; gap: 8px; }
   .header-actions { flex-wrap: wrap; }
+  .progress-dots { display: none; }
+  .mobile-tabs { display: flex; }
+  .form-panel.hidden-mobile, .preview-panel.hidden-mobile { display: none; }
+  .shortcuts-hint { display: none; }
+  .autosave-indicator { bottom: 56px; }
 }
 
 /* ===== BOOST: Light theme ===== */
@@ -365,6 +480,9 @@ body.light {
   --glow: 0 0 20px rgba(56,189,248,0.18);
 }
 body.light .app-header h1 span { opacity: 0.55; }
+body.light .onboarding-card { box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+body.light .progress-dot { border-color: var(--border); }
+body.light .mobile-tabs { background: var(--surface); }
 
 /* ===== BOOST: Modal ===== */
 .modal-overlay {
@@ -605,6 +723,53 @@ body.light .app-header h1 span { opacity: 0.55; }
   </div>
 </div>
 
+<!-- UX: Mobile tabs for form/preview toggle -->
+<div class="mobile-tabs" id="mobileTabs">
+  <button class="mobile-tab active" id="mobileTabForm" onclick="switchMobileTab('form')" data-i18n="mobileTabForm">📝 Form</button>
+  <button class="mobile-tab" id="mobileTabPreview" onclick="switchMobileTab('preview')" data-i18n="mobileTabPreview">👁️ Preview</button>
+</div>
+
+<!-- UX: Progress dots sidebar -->
+<div class="progress-dots" id="progressDots"></div>
+
+<!-- UX: Auto-save indicator -->
+<div class="autosave-indicator" id="autosaveIndicator"><span id="autosaveIcon">💾</span> <span data-i18n="autosaveLabel" id="autosaveLabel">Auto-saved</span></div>
+
+<!-- UX: Keyboard shortcuts hint -->
+<div class="shortcuts-hint" onclick="openShortcuts()" data-i18n="shortcutsHint">⌨️ Ctrl+S Save · Ctrl+1-9 Sections</div>
+
+<!-- UX: Onboarding overlay (first visit) -->
+<div class="onboarding-overlay" id="onboardingOverlay" onclick="if(event.target===this)closeOnboarding()">
+  <div class="onboarding-card">
+    <h2 data-i18n="onboardTitle">👋 Welcome to Trammel PE!</h2>
+    <p data-i18n="onboardDesc">Build structured, copy-ready prompts for any AI agent in 9 steps. No more guessing — trace the arc from idea to execution.</p>
+    <div class="onboarding-steps">
+      <div class="onboarding-step"><span class="step-num">1</span><span data-i18n="onboardStep1">Start with your Objective — what do you want the AI to do?</span></div>
+      <div class="onboarding-step"><span class="step-num">2</span><span data-i18n="onboardStep2">Define scope, tools, and task breakdown</span></div>
+      <div class="onboarding-step"><span class="step-num">3</span><span data-i18n="onboardStep3">Set role, output format, and constraints</span></div>
+      <div class="onboarding-step"><span class="step-num">4</span><span data-i18n="onboardStep4">Copy the generated prompt → paste into any LLM</span></div>
+    </div>
+    <div class="onboarding-actions">
+      <button class="btn btn-primary" onclick="closeOnboarding();document.getElementById('objective').focus();" data-i18n="onboardStart">🚀 Start Building</button>
+      <button class="btn" onclick="closeOnboarding();useTemplate('competitive');" data-i18n="onboardTemplate">📋 Use Template</button>
+    </div>
+  </div>
+</div>
+
+<!-- UX: Shortcuts modal -->
+<div class="shortcuts-modal" id="shortcutsModal" onclick="if(event.target===this)closeShortcuts()">
+  <div class="shortcuts-card">
+    <h3 data-i18n="shortcutsTitle">⌨️ Keyboard Shortcuts</h3>
+    <div class="shortcut-row"><span data-i18n="scSave">Save draft</span><span class="shortcut-key">Ctrl+S</span></div>
+    <div class="shortcut-row"><span data-i18n="scCopy">Copy prompt</span><span class="shortcut-key">Ctrl+Shift+C</span></div>
+    <div class="shortcut-row"><span data-i18n="scJump">Jump to section</span><span class="shortcut-key">Ctrl+1–9</span></div>
+    <div class="shortcut-row"><span data-i18n="scCollapse">Toggle section</span><span class="shortcut-key">Alt+1–9</span></div>
+    <div class="shortcut-row"><span data-i18n="scExpandAll">Expand all sections</span><span class="shortcut-key">Ctrl+E</span></div>
+    <div class="shortcut-row"><span data-i18n="scCollapseAll">Collapse all sections</span><span class="shortcut-key">Ctrl+Shift+E</span></div>
+    <div style="margin-top:14px;text-align:center;"><button class="btn" onclick="closeShortcuts()" data-i18n="modalClose">Close</button></div>
+  </div>
+</div>
+
 <div class="container">
 <!-- ==================== FORM PANEL ==================== -->
 <div class="form-panel" id="formPanel">
@@ -687,8 +852,9 @@ body.light .app-header h1 span { opacity: 0.55; }
     <p class="advanced-note" data-i18n="advancedNote">Advanced mode keeps the full 9-step framework for precision work.</p>
 
   <!-- STEP 1: OBJECTIVE -->
-  <div class="section">
-    <div class="section-title"><span class="num">1</span> <span data-i18n="s1Title">🎯 Objective — What Do You Want Done?</span></div>
+  <div class="section" data-section="1">
+    <div class="section-title" onclick="toggleSection(1)"><span class="num">1</span> <span data-i18n="s1Title">🎯 Objective — What Do You Want Done?</span><span class="section-badge" id="badge-1">✅</span><span class="section-toggle" id="toggle-1">▼</span></div>
+    <div class="section-body" id="section-body-1">
     <label for="objective" data-i18n="s1ObjLabel">Main Objective (start with a verb)</label>
     <textarea id="objective" data-ph="s1ObjPh" placeholder="e.g. Analyze the competitive landscape for a SaaS startup offering AI-powered customer support automation in Latin America" oninput="updatePreview()"></textarea>
 
@@ -711,11 +877,13 @@ body.light .app-header h1 span { opacity: 0.55; }
 
     <label for="successCriteria" data-i18n="s1SuccessLabel">Success Criteria (how will you know it's done right?)</label>
     <textarea id="successCriteria" data-ph="s1SuccessPh" placeholder="e.g. Produces a prioritized list of 5-7 competitors with revenue estimates, funding stage, key differentiators, and market positioning map" oninput="updatePreview()"></textarea>
+    </div>
   </div>
 
   <!-- STEP 2: SCOPE -->
-  <div class="section">
-    <div class="section-title"><span class="num">2</span> <span data-i18n="s2Title">🔭 Scope — Boundaries & Constraints</span></div>
+  <div class="section" data-section="2">
+    <div class="section-title" onclick="toggleSection(2)"><span class="num">2</span> <span data-i18n="s2Title">🔭 Scope — Boundaries & Constraints</span><span class="section-badge" id="badge-2">✅</span><span class="section-toggle" id="toggle-2">▼</span></div>
+    <div class="section-body" id="section-body-2">
     <label for="inScope" data-i18n="s2InLabel">IN Scope (what to cover)</label>
     <textarea id="inScope" data-ph="s2InPh" placeholder="e.g. Latin American market, companies with >$1M ARR, AI/ML-powered products, both direct and indirect competitors" oninput="updatePreview()"></textarea>
 
@@ -734,11 +902,13 @@ body.light .app-header h1 span { opacity: 0.55; }
       <div class="toggle" id="toggleSelfLearn" onclick="toggleSwitch(this)"></div>
       <span class="toggle-label" data-i18n="s2SelfLearn">Enable Self-Learning Loop (agent iterates & refines)</span>
     </div>
+    </div>
   </div>
 
   <!-- STEP 3: TOOLS -->
-  <div class="section">
-    <div class="section-title"><span class="num">3</span> <span data-i18n="s3Title">🛠️ Tools — What Should the Agent Use?</span></div>
+  <div class="section" data-section="3">
+    <div class="section-title" onclick="toggleSection(3)"><span class="num">3</span> <span data-i18n="s3Title">🛠️ Tools — What Should the Agent Use?</span><span class="section-badge" id="badge-3">✅</span><span class="section-toggle" id="toggle-3">▼</span></div>
+    <div class="section-body" id="section-body-3">
     <p style="font-size:0.82rem;color:var(--text2);margin-bottom:8px;" data-i18n="s3Desc">Select tools the agent should leverage. These will be specified in the prompt.</p>
     <div class="tool-grid" id="toolGrid">
       <div class="tool-chip" data-tool="web_search" onclick="toggleTool(this)">🔍 <span data-i18n="tWebSearch">Web Search</span></div>
@@ -756,11 +926,13 @@ body.light .app-header h1 span { opacity: 0.55; }
     </div>
     <label for="customTools" style="margin-top:10px;" data-i18n="s3CustomLabel">Custom Tools (one per line)</label>
     <textarea id="customTools" data-ph="s3CustomPh" placeholder="e.g.&#10;Linear API for project tracking&#10;GitHub API for code review&#10;TastyTrade API for options data" oninput="updatePreview()"></textarea>
+    </div>
   </div>
 
   <!-- STEP 4: TASK DECOMPOSITION -->
-  <div class="section">
-    <div class="section-title"><span class="num">4</span> <span data-i18n="s4Title">🧩 Task Decomposition — Break It Down</span></div>
+  <div class="section" data-section="4">
+    <div class="section-title" onclick="toggleSection(4)"><span class="num">4</span> <span data-i18n="s4Title">🧩 Task Decomposition — Break It Down</span><span class="section-badge" id="badge-4">✅</span><span class="section-toggle" id="toggle-4">▼</span></div>
+    <div class="section-body" id="section-body-4">
     <p style="font-size:0.82rem;color:var(--text2);margin-bottom:8px;" data-i18n="s4Desc">Divide the objective into sequential or parallel sub-tasks. Each sub-task gets its own focused prompt segment.</p>
     <div class="subtask-list" id="subtaskList">
       <div class="subtask-card" id="subtask-1">
@@ -773,11 +945,13 @@ body.light .app-header h1 span { opacity: 0.55; }
       </div>
     </div>
     <button class="btn btn-success" onclick="addSubtask()" style="margin-top:8px;" data-i18n="s4AddBtn">+ Add Sub-task</button>
+    </div>
   </div>
 
   <!-- STEP 5: ROLE & PERSONA -->
-  <div class="section">
-    <div class="section-title"><span class="num">5</span> <span data-i18n="s5Title">🎭 Role & Persona</span></div>
+  <div class="section" data-section="5">
+    <div class="section-title" onclick="toggleSection(5)"><span class="num">5</span> <span data-i18n="s5Title">🎭 Role & Persona</span><span class="section-badge" id="badge-5">✅</span><span class="section-toggle" id="toggle-5">▼</span></div>
+    <div class="section-body" id="section-body-5">
     <label for="role" data-i18n="s5RoleLabel">Who should the AI be?</label>
     <textarea id="role" data-ph="s5RolePh" placeholder="e.g. Senior competitive intelligence analyst with 10+ years in SaaS markets across Latin America, fluent in Portuguese and Spanish" oninput="updatePreview()"></textarea>
 
@@ -791,11 +965,13 @@ body.light .app-header h1 span { opacity: 0.55; }
       <option value="technical" data-i18n="s5ToneTech">Technical & Precise</option>
       <option value="executive" data-i18n="s5ToneExec">Executive Summary Style</option>
     </select>
+    </div>
   </div>
 
   <!-- STEP 6: OUTPUT FORMAT -->
-  <div class="section">
-    <div class="section-title"><span class="num">6</span> <span data-i18n="s6Title">📋 Output Format</span></div>
+  <div class="section" data-section="6">
+    <div class="section-title" onclick="toggleSection(6)"><span class="num">6</span> <span data-i18n="s6Title">📋 Output Format</span><span class="section-badge" id="badge-6">✅</span><span class="section-toggle" id="toggle-6">▼</span></div>
+    <div class="section-body" id="section-body-6">
     <label for="format" data-i18n="s6FormatLabel">Primary Output Format</label>
     <select id="format" onchange="updatePreview()">
       <option value="markdown" data-i18n="s6FmtMd">Markdown (structured with headers)</option>
@@ -817,11 +993,13 @@ body.light .app-header h1 span { opacity: 0.55; }
 
     <label for="customFormat" data-i18n="s6CustomLabel">Custom Format Instructions</label>
     <textarea id="customFormat" data-ph="s6CustomPh" placeholder="e.g. Start with an executive summary table, then detailed sections, end with a risk matrix and action items numbered 1-10" oninput="updatePreview()"></textarea>
+    </div>
   </div>
 
   <!-- STEP 7: CONTEXT & DATA -->
-  <div class="section">
-    <div class="section-title"><span class="num">7</span> <span data-i18n="s7Title">📚 Context & Data</span></div>
+  <div class="section" data-section="7">
+    <div class="section-title" onclick="toggleSection(7)"><span class="num">7</span> <span data-i18n="s7Title">📚 Context & Data</span><span class="section-badge" id="badge-7">✅</span><span class="section-toggle" id="toggle-7">▼</span></div>
+    <div class="section-body" id="section-body-7">
     <label for="background" data-i18n="s7BgLabel">Background Context</label>
     <textarea class="large" id="background" data-ph="s7BgPh" placeholder="e.g. We're a 6-month-old startup with 3 enterprise clients in Mexico and Brazil. Our product uses GPT-4 for ticket classification and response drafting. We're preparing a Series A pitch." oninput="updatePreview()"></textarea>
 
@@ -830,11 +1008,13 @@ body.light .app-header h1 span { opacity: 0.55; }
 
     <label for="audience" data-i18n="s7AudLabel">Target Audience for Output</label>
     <input type="text" id="audience" data-ph="s7AudPh" placeholder="e.g. Series A investors, internal product team, C-suite" oninput="updatePreview()">
+    </div>
   </div>
 
   <!-- STEP 8: CONSTRAINTS -->
-  <div class="section">
-    <div class="section-title"><span class="num">8</span> <span data-i18n="s8Title">🚧 Constraints & Guardrails</span></div>
+  <div class="section" data-section="8">
+    <div class="section-title" onclick="toggleSection(8)"><span class="num">8</span> <span data-i18n="s8Title">🚧 Constraints & Guardrails</span><span class="section-badge" id="badge-8">✅</span><span class="section-toggle" id="toggle-8">▼</span></div>
+    <div class="section-body" id="section-body-8">
     <label for="constraints" data-i18n="s8MustNotLabel">Must NOT (what to avoid)</label>
     <textarea id="constraints" data-ph="s8MustNotPh" placeholder="e.g. Do not include companies with no public revenue data. Avoid speculation without clear sourcing. No generic advice — every point must be specific and actionable." oninput="updatePreview()"></textarea>
 
@@ -843,11 +1023,13 @@ body.light .app-header h1 span { opacity: 0.55; }
 
     <label for="edgeCases" data-i18n="s8EdgeLabel">Edge Cases & Known Risks</label>
     <textarea id="edgeCases" data-ph="s8EdgePh" placeholder="e.g. Some competitors may have stealth AI features not publicly disclosed. Market sizing in LATAM is unreliable — triangulate from multiple sources." oninput="updatePreview()"></textarea>
+    </div>
   </div>
 
   <!-- STEP 9: SELF-LEARNING LOOP -->
-  <div class="section" id="selfLearnSection" style="display:none;border-color:var(--accent2);">
-    <div class="section-title" style="color:var(--accent2);"><span class="num" style="background:var(--accent2);">9</span> <span data-i18n="s9Title">🔄 Self-Learning Loop Configuration</span></div>
+  <div class="section" data-section="9" id="selfLearnSection" style="display:none;border-color:var(--accent2);">
+    <div class="section-title" style="color:var(--accent2);" onclick="toggleSection(9)"><span class="num" style="background:var(--accent2);">9</span> <span data-i18n="s9Title">🔄 Self-Learning Loop Configuration</span><span class="section-badge" id="badge-9">✅</span><span class="section-toggle" id="toggle-9">▼</span></div>
+    <div class="section-body" id="section-body-9">
     <p style="font-size:0.82rem;color:var(--text2);margin-bottom:10px;" data-i18n="s9Desc">Configure how the agent should iterate and refine its own output.</p>
 
     <label for="iterationStrategy" data-i18n="s9IterLabel">Iteration Strategy</label>
@@ -868,6 +1050,7 @@ body.light .app-header h1 span { opacity: 0.55; }
 
     <label for="improvementFocus" data-i18n="s9FocusLabel">What should improve with each iteration?</label>
     <textarea id="improvementFocus" data-ph="s9FocusPh" placeholder="e.g. Accuracy of claims, completeness of coverage, specificity of recommendations, clarity of presentation" oninput="updatePreview()"></textarea>
+    </div>
   </div>
 
   </div><!-- /advancedBuilder -->
@@ -1175,8 +1358,28 @@ const I18N = {
     tplSecurityAudit: "Security Audit", tplSecurityAuditDesc: "Audit an app for vulnerabilities and recommend fixes.",
     tplCompetitive: "Competitive Analysis", tplCompetitiveDesc: "Map competitors, positioning, and strategic gaps.",
     tplUse: "Use",
+// UX improvement keys
+    mobileTabForm: "📝 Form",
+    mobileTabPreview: "👁️ Preview",
+    autosaveLabel: "Auto-saved",
+    shortcutsHint: "⌨️ Ctrl+S Save · Ctrl+1-9 Sections",
+    shortcutsTitle: "⌨️ Keyboard Shortcuts",
+    scSave: "Save draft",
+    scCopy: "Copy prompt",
+    scJump: "Jump to section",
+    scCollapse: "Toggle section",
+    scExpandAll: "Expand all sections",
+    scCollapseAll: "Collapse all sections",
+    onboardTitle: "👋 Welcome to Trammel PE!",
+    onboardDesc: "Build structured, copy-ready prompts for any AI agent in 9 steps. No more guessing — trace the arc from idea to execution.",
+    onboardStep1: "Start with your Objective — what do you want the AI to do?",
+    onboardStep2: "Define scope, tools, and task breakdown",
+    onboardStep3: "Set role, output format, and constraints",
+    onboardStep4: "Copy the generated prompt → paste into any LLM",
+    onboardStart: "🚀 Start Building",
+    onboardTemplate: "📋 Use Template",
 
-    // V2 Quick Builder keys
+// V2 Quick Builder keys
     quickModeBtn: "⚡ Quick Builder", advancedModeBtn: "🛠️ Advanced Builder",
     quickKicker: "Quick start", quickTitle: "Describe it once. Get a structured prompt.",
     quickSubtitle: "Type a rough idea, tap a few options, and Trammel writes the full prompt for you.",
@@ -1344,8 +1547,28 @@ const I18N = {
     tplSecurityAudit: "Auditoría de Seguridad", tplSecurityAuditDesc: "Audita una app por vulnerabilidades y recomienda arreglos.",
     tplCompetitive: "Análisis Competitivo", tplCompetitiveDesc: "Mapea competidores, posicionamiento y brechas estratégicas.",
     tplUse: "Usar",
+// UX improvement keys
+    mobileTabForm: "📝 Formulario",
+    mobileTabPreview: "👁️ Vista Previa",
+    autosaveLabel: "Auto-guardado",
+    shortcutsHint: "⌨️ Ctrl+S Guardar · Ctrl+1-9 Secciones",
+    shortcutsTitle: "⌨️ Atajos de Teclado",
+    scSave: "Guardar borrador",
+    scCopy: "Copiar prompt",
+    scJump: "Ir a sección",
+    scCollapse: "Plegar/desplegar sección",
+    scExpandAll: "Expandir todas las secciones",
+    scCollapseAll: "Colapsar todas las secciones",
+    onboardTitle: "👋 ¡Bienvenido a Trammel PE!",
+    onboardDesc: "Construye prompts estructurados y listos para copiar para cualquier agente de IA en 9 pasos. Sin más adivinanzas — traza el arco de la idea a la ejecución.",
+    onboardStep1: "Empieza con tu Objetivo — ¿qué quieres que haga la IA?",
+    onboardStep2: "Define alcance, herramientas y descomposición de tareas",
+    onboardStep3: "Configura rol, formato de salida y restricciones",
+    onboardStep4: "Copia el prompt generado → pégalo en cualquier LLM",
+    onboardStart: "🚀 Empezar",
+    onboardTemplate: "📋 Usar Plantilla",
 
-    // V2 Quick Builder keys
+// V2 Quick Builder keys
     quickModeBtn: "⚡ Quick Builder", advancedModeBtn: "🛠️ Builder Avanzado",
     quickKicker: "Inicio rápido", quickTitle: "Descríbelo una vez. Recibe un prompt estructurado.",
     quickSubtitle: "Escribe una idea aproximada, marca unas opciones y Trammel redacta el prompt completo por ti.",
@@ -1513,8 +1736,28 @@ const I18N = {
     tplSecurityAudit: "Auditoria de Segurança", tplSecurityAuditDesc: "Audite um app por vulnerabilidades e recomende correções.",
     tplCompetitive: "Análise Competitiva", tplCompetitiveDesc: "Mapeie concorrentes, posicionamento e lacunas estratégicas.",
     tplUse: "Usar",
+// UX improvement keys
+    mobileTabForm: "📝 Formulário",
+    mobileTabPreview: "👁️ Pré-visualização",
+    autosaveLabel: "Auto-salvo",
+    shortcutsHint: "⌨️ Ctrl+S Salvar · Ctrl+1-9 Seções",
+    shortcutsTitle: "⌨️ Atalhos de Teclado",
+    scSave: "Salvar rascunho",
+    scCopy: "Copiar prompt",
+    scJump: "Ir para seção",
+    scCollapse: "Expandir/colapsar seção",
+    scExpandAll: "Expandir todas as seções",
+    scCollapseAll: "Colapsar todas as seções",
+    onboardTitle: "👋 Bem-vindo ao Trammel PE!",
+    onboardDesc: "Construa prompts estruturados e prontos para copiar para qualquer agente de IA em 9 passos. Sem mais adivinhações — trace o arco da ideia à execução.",
+    onboardStep1: "Comece com seu Objetivo — o que você quer que a IA faça?",
+    onboardStep2: "Defina escopo, ferramentas e decomposição de tarefas",
+    onboardStep3: "Configure papel, formato de saída e restrições",
+    onboardStep4: "Copie o prompt gerado → cole em qualquer LLM",
+    onboardStart: "🚀 Começar",
+    onboardTemplate: "📋 Usar Template",
 
-    // V2 Quick Builder keys
+// V2 Quick Builder keys
     quickModeBtn: "⚡ Quick Builder", advancedModeBtn: "🛠️ Builder Avançado",
     quickKicker: "Início rápido", quickTitle: "Descreva uma vez. Receba um prompt estruturado.",
     quickSubtitle: "Digite uma ideia aproximada, toque em algumas opções e o Trammel redige o prompt completo para você.",
@@ -1904,6 +2147,7 @@ function resetAllSilent() {
   document.getElementById('toggleSelfLearn').classList.remove('on');
   document.getElementById('selfLearnSection').style.display = 'none';
   document.getElementById('domainCustom').style.display = 'none';
+  clearDraft();
   subtaskCounter = 1;
   const list = document.getElementById('subtaskList');
   list.innerHTML = `
@@ -2604,9 +2848,323 @@ const TEMPLATES = {
   },
 };
 
+// ============================================================
+// UX: COLLAPSIBLE SECTIONS
+// ============================================================
+const SECTION_FIELDS = {
+  1: ['objective','successCriteria'],
+  2: ['inScope','outScope'],
+  3: ['customTools'], // tools are tracked separately
+  4: [], // subtasks, handled separately
+  5: ['role'],
+  6: ['customFormat'],
+  7: ['background','inputData','audience'],
+  8: ['constraints','mustDo','edgeCases'],
+  9: ['improvementFocus'],
+};
+
+const LS_COLLAPSED = 'trammelpe_collapsed_v1';
+const LS_DRAFT = 'trammelpe_draft_v1';
+const LS_ONBOARDED = 'trammelpe_onboarded_v1';
+
+function toggleSection(num) {
+  const body = document.getElementById('section-body-' + num);
+  const toggle = document.getElementById('toggle-' + num);
+  if (!body || !toggle) return;
+  const isCollapsed = body.classList.toggle('collapsed');
+  toggle.classList.toggle('collapsed', isCollapsed);
+  saveCollapsedState();
+}
+
+function saveCollapsedState() {
+  try {
+    const collapsed = [];
+    for (let i = 1; i <= 9; i++) {
+      const body = document.getElementById('section-body-' + i);
+      if (body && body.classList.contains('collapsed')) collapsed.push(i);
+    }
+    localStorage.setItem(LS_COLLAPSED, JSON.stringify(collapsed));
+  } catch(e) {}
+}
+
+function loadCollapsedState() {
+  try {
+    const collapsed = JSON.parse(localStorage.getItem(LS_COLLAPSED) || '[]');
+    collapsed.forEach(i => {
+      const body = document.getElementById('section-body-' + i);
+      const toggle = document.getElementById('toggle-' + i);
+      if (body) body.classList.add('collapsed');
+      if (toggle) toggle.classList.add('collapsed');
+    });
+  } catch(e) {}
+}
+
+function expandAllSections() {
+  for (let i = 1; i <= 9; i++) {
+    const body = document.getElementById('section-body-' + i);
+    const toggle = document.getElementById('toggle-' + i);
+    if (body) body.classList.remove('collapsed');
+    if (toggle) toggle.classList.remove('collapsed');
+  }
+  saveCollapsedState();
+}
+
+function collapseAllSections() {
+  for (let i = 1; i <= 9; i++) {
+    const body = document.getElementById('section-body-' + i);
+    const toggle = document.getElementById('toggle-' + i);
+    if (body) body.classList.add('collapsed');
+    if (toggle) toggle.classList.add('collapsed');
+  }
+  saveCollapsedState();
+}
+
+function scrollToSection(num) {
+  const sec = document.querySelector('[data-section="' + num + '"]');
+  if (sec) {
+    // Expand if collapsed
+    const body = document.getElementById('section-body-' + num);
+    const toggle = document.getElementById('toggle-' + num);
+    if (body && body.classList.contains('collapsed')) {
+      body.classList.remove('collapsed');
+      if (toggle) toggle.classList.remove('collapsed');
+      saveCollapsedState();
+    }
+    sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+// ============================================================
+// UX: SECTION COMPLETION BADGES
+// ============================================================
+function updateSectionBadges() {
+  for (let i = 1; i <= 9; i++) {
+    const badge = document.getElementById('badge-' + i);
+    if (!badge) continue;
+    const filled = isSectionFilled(i);
+    badge.classList.toggle('visible', filled);
+    // Also update progress dot
+    const dot = document.getElementById('dot-' + i);
+    if (dot) dot.classList.toggle('filled', filled);
+  }
+}
+
+function isSectionFilled(num) {
+  if (num === 3) {
+    // Tools section: check selected tools or custom tools text
+    return selectedTools.size > 0 || document.getElementById('customTools').value.trim().length > 5;
+  }
+  if (num === 4) {
+    // Subtasks: check if any subtask has content
+    const cards = document.querySelectorAll('.subtask-card');
+    for (const card of cards) {
+      const name = card.querySelector('.subtask-name')?.value?.trim() || '';
+      const desc = card.querySelector('.subtask-desc')?.value?.trim() || '';
+      if (name.length > 3 || desc.length > 10) return true;
+    }
+    return false;
+  }
+  if (num === 9) {
+    // Self-learning: check if section is visible and has content
+    const sec = document.getElementById('selfLearnSection');
+    if (sec && sec.style.display !== 'none') {
+      return document.getElementById('improvementFocus').value.trim().length > 10;
+    }
+    return false;
+  }
+  const fields = SECTION_FIELDS[num] || [];
+  for (const fid of fields) {
+    const el = document.getElementById(fid);
+    if (el && el.value.trim().length > 10) return true;
+  }
+  return false;
+}
+
+// ============================================================
+// UX: PROGRESS DOTS SIDEBAR
+// ============================================================
+const SECTION_NAMES = {
+  1: 's1Title', 2: 's2Title', 3: 's3Title', 4: 's4Title',
+  5: 's5Title', 6: 's6Title', 7: 's7Title', 8: 's8Title', 9: 's9Title',
+};
+
+function initProgressDots() {
+  const container = document.getElementById('progressDots');
+  if (!container) return;
+  let html = '';
+  for (let i = 1; i <= 9; i++) {
+    const label = t(SECTION_NAMES[i]).replace(/^[^\s]+\s/, '').substring(0, 30);
+    html += '<div class="progress-dot" id="dot-' + i + '" onclick="scrollToSection(' + i + ')" title="Section ' + i + '"><span class="dot-tooltip">' + escapeHtml(label) + '</span></div>';
+  }
+  container.innerHTML = html;
+}
+
+// ============================================================
+// UX: MOBILE TABS
+// ============================================================
+function switchMobileTab(tab) {
+  const formPanel = document.getElementById('formPanel');
+  const previewPanel = document.getElementById('previewPanel');
+  const tabForm = document.getElementById('mobileTabForm');
+  const tabPreview = document.getElementById('mobileTabPreview');
+  if (tab === 'form') {
+    formPanel.classList.remove('hidden-mobile');
+    previewPanel.classList.add('hidden-mobile');
+    tabForm.classList.add('active');
+    tabPreview.classList.remove('active');
+  } else {
+    formPanel.classList.add('hidden-mobile');
+    previewPanel.classList.remove('hidden-mobile');
+    tabForm.classList.remove('active');
+    tabPreview.classList.add('active');
+    updatePreview();
+  }
+}
+
+// ============================================================
+// UX: AUTO-SAVE DRAFT
+// ============================================================
+let autoSaveTimer = null;
+let lastDraftHash = '';
+
+function autoSaveDraft() {
+  try {
+    const data = gatherData();
+    const hash = JSON.stringify(data);
+    if (hash === lastDraftHash) return; // no change
+    lastDraftHash = hash;
+    localStorage.setItem(LS_DRAFT, hash);
+    // Show indicator briefly
+    const ind = document.getElementById('autosaveIndicator');
+    if (ind) {
+      ind.classList.add('show');
+      clearTimeout(ind._t);
+      ind._t = setTimeout(() => ind.classList.remove('show'), 2000);
+    }
+  } catch(e) {}
+}
+
+function loadDraft() {
+  try {
+    const raw = localStorage.getItem(LS_DRAFT);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (!data || !data.objective) return false;
+    applyData(data);
+    return true;
+  } catch(e) { return false; }
+}
+
+function clearDraft() {
+  try { localStorage.removeItem(LS_DRAFT); } catch(e) {}
+  lastDraftHash = '';
+}
+
+function startAutoSave() {
+  if (autoSaveTimer) clearInterval(autoSaveTimer);
+  autoSaveTimer = setInterval(autoSaveDraft, 5000);
+}
+
+// ============================================================
+// UX: ONBOARDING
+// ============================================================
+function showOnboarding() {
+  try {
+    const onboarded = localStorage.getItem(LS_ONBOARDED);
+    if (onboarded) return;
+  } catch(e) {}
+  document.getElementById('onboardingOverlay').classList.add('open');
+}
+
+function closeOnboarding() {
+  document.getElementById('onboardingOverlay').classList.remove('open');
+  try { localStorage.setItem(LS_ONBOARDED, '1'); } catch(e) {}
+}
+
+// ============================================================
+// UX: KEYBOARD SHORTCUTS
+// ============================================================
+function openShortcuts() {
+  document.getElementById('shortcutsModal').classList.add('open');
+}
+
+function closeShortcuts() {
+  document.getElementById('shortcutsModal').classList.remove('open');
+}
+
+function handleKeyboard(e) {
+  // Ctrl+S = Save draft
+  if ((e.ctrlKey || e.metaKey) && e.key === 's' && !e.shiftKey) {
+    e.preventDefault();
+    autoSaveDraft();
+    showToast(t('autosaveLabel'));
+    return;
+  }
+  // Ctrl+Shift+C = Copy prompt
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'C') {
+    e.preventDefault();
+    copyPrompt();
+    return;
+  }
+  // Ctrl+E = Expand all
+  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === 'e' || e.key === 'E')) {
+    e.preventDefault();
+    expandAllSections();
+    return;
+  }
+  // Ctrl+Shift+E = Collapse all
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'E' || e.key === 'e')) {
+    e.preventDefault();
+    collapseAllSections();
+    return;
+  }
+  // Ctrl+1-9 = Jump to section
+  if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey) {
+    const num = parseInt(e.key);
+    if (num >= 1 && num <= 9) {
+      e.preventDefault();
+      scrollToSection(num);
+      return;
+    }
+  }
+  // Alt+1-9 = Toggle section collapse
+  if (e.altKey && !(e.ctrlKey || e.metaKey) && !e.shiftKey) {
+    const num = parseInt(e.key);
+    if (num >= 1 && num <= 9) {
+      e.preventDefault();
+      toggleSection(num);
+      return;
+    }
+  }
+}
+
 // Initialize
 initTheme();
-updatePreview();
+initProgressDots();
+loadCollapsedState();
+
+// Try to restore draft (only if no objective set yet)
+if (!document.getElementById('objective').value.trim()) {
+  loadDraft();
+} else {
+  updatePreview();
+}
+
+updateSectionBadges();
+startAutoSave();
+
+// Listen for keyboard shortcuts
+document.addEventListener('keydown', handleKeyboard);
+
+// Update badges on every preview update
+const _origUpdatePreview = updatePreview;
+updatePreview = function() {
+  _origUpdatePreview();
+  updateSectionBadges();
+};
+
+// Show onboarding for first-time visitors
+showOnboarding();
 </script>
 </body>
 </html>
