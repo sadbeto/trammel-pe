@@ -353,6 +353,96 @@ select {
   .app-header { flex-wrap: wrap; gap: 8px; }
   .header-actions { flex-wrap: wrap; }
 }
+
+/* ===== BOOST: Light theme ===== */
+body.light {
+  --bg: #f1f5f9;
+  --surface: #ffffff;
+  --surface2: #f8fafc;
+  --border: #d8e0ea;
+  --text: #1e293b;
+  --text2: #64748b;
+  --glow: 0 0 20px rgba(56,189,248,0.18);
+}
+body.light .app-header h1 span { opacity: 0.55; }
+
+/* ===== BOOST: Modal ===== */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 500;
+  align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  width: 100%; max-width: 640px;
+  max-height: 82vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+}
+.modal-head h3 {
+  font-size: 1.05rem; color: var(--accent);
+  display: flex; align-items: center; gap: 8px;
+}
+.modal-close {
+  background: none; border: none; color: var(--text2);
+  font-size: 1.3rem; cursor: pointer; line-height: 1;
+}
+.modal-close:hover { color: var(--danger); }
+.modal-body { padding: 16px 20px; overflow-y: auto; }
+.modal-foot {
+  padding: 12px 20px; border-top: 1px solid var(--border);
+  display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;
+}
+
+/* ===== BOOST: Library / template cards ===== */
+.lib-item, .tpl-item {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  transition: border-color 0.2s;
+}
+.lib-item:hover, .tpl-item:hover { border-color: var(--accent); }
+.lib-item-top {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+}
+.lib-name { font-weight: 600; font-size: 0.95rem; color: var(--text); }
+.lib-meta { font-size: 0.72rem; color: var(--text2); margin-top: 3px; }
+.lib-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.lib-actions .btn, .tpl-item .btn { padding: 5px 10px; font-size: 0.78rem; }
+.tpl-desc { font-size: 0.8rem; color: var(--text2); margin-top: 4px; }
+.lib-empty { color: var(--text2); font-size: 0.85rem; text-align: center; padding: 24px 0; }
+.ver-row {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 0.78rem; padding: 6px 8px; margin-top: 6px;
+  background: var(--bg); border-radius: 6px; border: 1px solid var(--border);
+}
+.import-area {
+  width: 100%; min-height: 140px; font-family: monospace; font-size: 0.78rem;
+  background: var(--bg); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px; padding: 10px; resize: vertical;
+}
+
+/* ===== BOOST: Toast ===== */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--accent3); color: #06281c; font-weight: 600;
+  padding: 10px 20px; border-radius: 8px; font-size: 0.88rem;
+  opacity: 0; pointer-events: none; transition: all 0.25s; z-index: 600;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
@@ -366,7 +456,11 @@ select {
       <option value="pt">🇧🇷 Português</option>
     </select>
     <button class="btn" onclick="resetAll()" data-i18n="btnReset">🔄 Reset</button>
-    <button class="btn" onclick="loadTemplate()" data-i18n="btnTemplate">📋 Template</button>
+    <button class="btn" onclick="openTemplates()" data-i18n="btnTemplate">📋 Template</button>
+    <button class="btn" onclick="saveCurrent()" title="Save / Guardar"><span data-i18n="btnSave">💾 Save</span></button>
+    <button class="btn" onclick="openLibrary()" title="Library / Biblioteca"><span data-i18n="btnLibrary">📚 Library</span></button>
+    <button class="btn" onclick="openExport()" title="Export / Exportar"><span data-i18n="btnExport">⬇️ Export</span></button>
+    <button class="btn" onclick="toggleTheme()" id="themeBtn" title="Theme / Tema">🌙</button>
     <button class="btn btn-primary" onclick="copyPrompt()">📋 <span data-i18n="btnCopy">Copy Prompt</span></button>
   </div>
 </div>
@@ -638,6 +732,59 @@ select {
 
 </div>
 
+<!-- ==================== BOOST MODALS ==================== -->
+<div class="modal-overlay" id="modalLibrary" onclick="if(event.target===this)closeModal('modalLibrary')">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>📚 <span data-i18n="libTitle">Prompt Library</span></h3>
+      <button class="modal-close" onclick="closeModal('modalLibrary')">✕</button>
+    </div>
+    <div class="modal-body" id="libBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-danger" onclick="clearLibrary()"><span data-i18n="libClear">Clear All</span></button>
+      <button class="btn" onclick="closeModal('modalLibrary')"><span data-i18n="modalClose">Close</span></button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalTemplates" onclick="if(event.target===this)closeModal('modalTemplates')">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>📋 <span data-i18n="tplTitle">Templates</span></h3>
+      <button class="modal-close" onclick="closeModal('modalTemplates')">✕</button>
+    </div>
+    <div class="modal-body" id="tplBody"></div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('modalTemplates')"><span data-i18n="modalClose">Close</span></button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalExport" onclick="if(event.target===this)closeModal('modalExport')">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>⬇️ <span data-i18n="expTitle">Export / Import</span></h3>
+      <button class="modal-close" onclick="closeModal('modalExport')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.82rem;color:var(--text2);margin-bottom:10px;" data-i18n="expDesc">Download the current prompt, or paste JSON below to import.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+        <button class="btn btn-success" onclick="downloadFile('md')">⬇️ .md</button>
+        <button class="btn btn-success" onclick="downloadFile('json')">⬇️ .json</button>
+        <button class="btn btn-success" onclick="downloadFile('txt')">⬇️ .txt</button>
+      </div>
+      <label style="display:block;margin-bottom:6px;font-size:0.85rem;" data-i18n="expImportLabel">Import from JSON</label>
+      <textarea class="import-area" id="importArea" data-ph="expImportPh" placeholder="Paste a Trammel PE JSON here..."></textarea>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-primary" onclick="importJSON()"><span data-i18n="expImportBtn">Import</span></button>
+      <button class="btn" onclick="closeModal('modalExport')"><span data-i18n="modalClose">Close</span></button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
 <script>
 // ============================================================
 // INTERNATIONALIZATION (i18n) SYSTEM
@@ -785,6 +932,30 @@ const I18N = {
     tplReset: "Reset all fields? This cannot be undone.",
     tplCopied: "✅ Copied!",
     tplNoObj: "Fill in at least the Objective field first.",
+    // BOOST keys
+    btnSave: "💾 Save", btnLibrary: "📚 Library", btnExport: "⬇️ Export",
+    modalClose: "Close",
+    libTitle: "Prompt Library", libClear: "Clear All",
+    libEmpty: "No saved prompts yet. Fill the form and click 💾 Save.",
+    libLoad: "Load", libDel: "Delete", libVersions: "Versions",
+    libSavedAs: "Saved", libNamePrompt: "Name this prompt:",
+    libConfirmClear: "Delete the entire library? This cannot be undone.",
+    libConfirmDel: "Delete this prompt and all its versions?",
+    verLoad: "Load", verLabel: "v",
+    tplTitle: "Templates",
+    expTitle: "Export / Import", expDesc: "Download the current prompt, or paste JSON below to import.",
+    expImportLabel: "Import from JSON", expImportPh: "Paste a Trammel PE JSON here...",
+    expImportBtn: "Import", expBadImport: "Invalid JSON — could not import.",
+    expImported: "Imported!", themeLight: "☀️", themeDark: "🌙",
+    toastSaved: "Saved to library", toastNoObj: "Fill the Objective first",
+    toastDownloaded: "Downloaded", toastLoaded: "Loaded", toastDeleted: "Deleted", toastCleared: "Library cleared",
+    tplDataAnalysis: "Data Analysis", tplDataAnalysisDesc: "Explore a dataset, find patterns, deliver insights with charts.",
+    tplContentWriting: "Content Writing", tplContentWritingDesc: "Write SEO-aware long-form content for a target audience.",
+    tplApiDesign: "API Design", tplApiDesignDesc: "Design a REST/GraphQL API with schemas, auth, and error handling.",
+    tplCodeReview: "Code Review", tplCodeReviewDesc: "Review a codebase for bugs, security, and maintainability.",
+    tplSecurityAudit: "Security Audit", tplSecurityAuditDesc: "Audit an app for vulnerabilities and recommend fixes.",
+    tplCompetitive: "Competitive Analysis", tplCompetitiveDesc: "Map competitors, positioning, and strategic gaps.",
+    tplUse: "Use",
   },
   es: {
     headerSub: "— Traza el arco de la idea a la ejecución",
@@ -910,6 +1081,30 @@ const I18N = {
     tplReset: "¿Limpiar todos los campos? No se puede deshacer.",
     tplCopied: "✅ ¡Copiado!",
     tplNoObj: "Llena al menos el campo de Objetivo primero.",
+    // BOOST keys
+    btnSave: "💾 Guardar", btnLibrary: "📚 Biblioteca", btnExport: "⬇️ Exportar",
+    modalClose: "Cerrar",
+    libTitle: "Biblioteca de Prompts", libClear: "Borrar Todo",
+    libEmpty: "No hay prompts guardados aún. Llena el formulario y presiona 💾 Guardar.",
+    libLoad: "Cargar", libDel: "Borrar", libVersions: "Versiones",
+    libSavedAs: "Guardado", libNamePrompt: "Nombre para este prompt:",
+    libConfirmClear: "¿Borrar toda la biblioteca? Esto no se puede deshacer.",
+    libConfirmDel: "¿Borrar este prompt y todas sus versiones?",
+    verLoad: "Cargar", verLabel: "v",
+    tplTitle: "Plantillas",
+    expTitle: "Exportar / Importar", expDesc: "Descarga el prompt actual, o pega JSON abajo para importar.",
+    expImportLabel: "Importar desde JSON", expImportPh: "Pega un JSON de Trammel PE aquí...",
+    expImportBtn: "Importar", expBadImport: "JSON inválido — no se pudo importar.",
+    expImported: "¡Importado!", themeLight: "☀️", themeDark: "🌙",
+    toastSaved: "Guardado en biblioteca", toastNoObj: "Llena el Objetivo primero",
+    toastDownloaded: "Descargado", toastLoaded: "Cargado", toastDeleted: "Borrado", toastCleared: "Biblioteca borrada",
+    tplDataAnalysis: "Análisis de Datos", tplDataAnalysisDesc: "Explora un dataset, encuentra patrones, entrega insights con gráficas.",
+    tplContentWriting: "Redacción de Contenido", tplContentWritingDesc: "Escribe contenido extenso con enfoque SEO para una audiencia objetivo.",
+    tplApiDesign: "Diseño de API", tplApiDesignDesc: "Diseña una API REST/GraphQL con esquemas, auth y manejo de errores.",
+    tplCodeReview: "Revisión de Código", tplCodeReviewDesc: "Revisa un código por bugs, seguridad y mantenibilidad.",
+    tplSecurityAudit: "Auditoría de Seguridad", tplSecurityAuditDesc: "Audita una app por vulnerabilidades y recomienda arreglos.",
+    tplCompetitive: "Análisis Competitivo", tplCompetitiveDesc: "Mapea competidores, posicionamiento y brechas estratégicas.",
+    tplUse: "Usar",
   },
   pt: {
     headerSub: "— Traça o arco da ideia à execução",
@@ -1035,6 +1230,30 @@ const I18N = {
     tplReset: "Limpar todos os campos? Isso não pode ser desfeito.",
     tplCopied: "✅ Copiado!",
     tplNoObj: "Preencha pelo menos o campo de Objetivo primeiro.",
+    // BOOST keys
+    btnSave: "💾 Salvar", btnLibrary: "📚 Biblioteca", btnExport: "⬇️ Exportar",
+    modalClose: "Fechar",
+    libTitle: "Biblioteca de Prompts", libClear: "Limpar Tudo",
+    libEmpty: "Nenhum prompt salvo ainda. Preencha o formulário e clique 💾 Salvar.",
+    libLoad: "Carregar", libDel: "Excluir", libVersions: "Versões",
+    libSavedAs: "Salvo", libNamePrompt: "Nome para este prompt:",
+    libConfirmClear: "Excluir toda a biblioteca? Isso não pode ser desfeito.",
+    libConfirmDel: "Excluir este prompt e todas as suas versões?",
+    verLoad: "Carregar", verLabel: "v",
+    tplTitle: "Modelos",
+    expTitle: "Exportar / Importar", expDesc: "Baixe o prompt atual, ou cole JSON abaixo para importar.",
+    expImportLabel: "Importar de JSON", expImportPh: "Cole um JSON do Trammel PE aqui...",
+    expImportBtn: "Importar", expBadImport: "JSON inválido — não foi possível importar.",
+    expImported: "Importado!", themeLight: "☀️", themeDark: "🌙",
+    toastSaved: "Salvo na biblioteca", toastNoObj: "Preencha o Objetivo primeiro",
+    toastDownloaded: "Baixado", toastLoaded: "Carregado", toastDeleted: "Excluído", toastCleared: "Biblioteca limpa",
+    tplDataAnalysis: "Análise de Dados", tplDataAnalysisDesc: "Explore um dataset, encontre padrões, entregue insights com gráficos.",
+    tplContentWriting: "Redação de Conteúdo", tplContentWritingDesc: "Escreva conteúdo extenso com foco em SEO para um público-alvo.",
+    tplApiDesign: "Design de API", tplApiDesignDesc: "Projete uma API REST/GraphQL com esquemas, auth e tratamento de erros.",
+    tplCodeReview: "Revisão de Código", tplCodeReviewDesc: "Revise um código por bugs, segurança e manutenibilidade.",
+    tplSecurityAudit: "Auditoria de Segurança", tplSecurityAuditDesc: "Audite um app por vulnerabilidades e recomende correções.",
+    tplCompetitive: "Análise Competitiva", tplCompetitiveDesc: "Mapeie concorrentes, posicionamento e lacunas estratégicas.",
+    tplUse: "Usar",
   }
 };
 
@@ -1513,7 +1732,393 @@ function val(obj, lang) {
   return obj[lang] || obj['en'] || '';
 }
 
+// ============================================================
+// BOOST: TOAST / MODALS / THEME / LIBRARY / EXPORT / TEMPLATES
+// ============================================================
+const LS_LIB = 'trammelpe_library_v1';
+const LS_THEME = 'trammelpe_theme_v1';
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ---------- THEME ----------
+function toggleTheme() {
+  const light = document.body.classList.toggle('light');
+  document.getElementById('themeBtn').textContent = light ? t('themeLight') : t('themeDark');
+  try { localStorage.setItem(LS_THEME, light ? 'light' : 'dark'); } catch (e) {}
+}
+function initTheme() {
+  let saved = 'dark';
+  try { saved = localStorage.getItem(LS_THEME) || 'dark'; } catch (e) {}
+  if (saved === 'light') document.body.classList.add('light');
+  document.getElementById('themeBtn').textContent = saved === 'light' ? t('themeLight') : t('themeDark');
+}
+
+// ---------- LIBRARY (localStorage + versions) ----------
+function readLib() {
+  try { return JSON.parse(localStorage.getItem(LS_LIB) || '[]'); } catch (e) { return []; }
+}
+function writeLib(lib) {
+  try { localStorage.setItem(LS_LIB, JSON.stringify(lib)); } catch (e) {}
+}
+
+function saveCurrent() {
+  const d = gatherData();
+  if (!d.objective) { showToast(t('toastNoObj')); return; }
+  const lib = readLib();
+  const snapshot = { ts: Date.now(), data: d, prompt: buildPrompt(d) };
+  // Match existing entry by name (objective first 60 chars) to append a version
+  const defaultName = d.objective.slice(0, 60);
+  const name = prompt(t('libNamePrompt'), defaultName);
+  if (name === null) return;
+  const finalName = (name || defaultName).trim() || defaultName;
+  let entry = lib.find(e => e.name === finalName);
+  if (entry) {
+    entry.versions.push(snapshot);
+    entry.updated = snapshot.ts;
+  } else {
+    lib.unshift({ id: 'p_' + snapshot.ts, name: finalName, updated: snapshot.ts, versions: [snapshot] });
+  }
+  writeLib(lib);
+  showToast(t('toastSaved'));
+}
+
+function openLibrary() { renderLibrary(); openModal('modalLibrary'); }
+
+function renderLibrary() {
+  const lib = readLib();
+  const body = document.getElementById('libBody');
+  if (!lib.length) { body.innerHTML = `<div class="lib-empty">${t('libEmpty')}</div>`; return; }
+  body.innerHTML = lib.map(e => {
+    const vCount = e.versions.length;
+    const latest = e.versions[vCount - 1];
+    const when = new Date(e.updated).toLocaleString();
+    let versionsHtml = '';
+    if (vCount > 1) {
+      versionsHtml = e.versions.map((v, i) =>
+        `<div class="ver-row"><span>${t('verLabel')}${i + 1} · ${new Date(v.ts).toLocaleString()}</span>
+         <button class="btn" onclick="loadVersion('${e.id}', ${i})">${t('verLoad')}</button></div>`
+      ).join('');
+    }
+    return `<div class="lib-item">
+      <div class="lib-item-top">
+        <div>
+          <div class="lib-name">${escapeHtml(e.name)}</div>
+          <div class="lib-meta">${t('libVersions')}: ${vCount} · ${when}</div>
+        </div>
+        <div class="lib-actions">
+          <button class="btn btn-success" onclick="loadVersion('${e.id}', ${vCount - 1})">${t('libLoad')}</button>
+          <button class="btn btn-danger" onclick="deleteLibItem('${e.id}')">${t('libDel')}</button>
+        </div>
+      </div>${versionsHtml}</div>`;
+  }).join('');
+}
+
+function loadVersion(id, vIdx) {
+  const lib = readLib();
+  const entry = lib.find(e => e.id === id);
+  if (!entry || !entry.versions[vIdx]) return;
+  applyData(entry.versions[vIdx].data);
+  closeModal('modalLibrary');
+  showToast(t('toastLoaded'));
+}
+
+function deleteLibItem(id) {
+  if (!confirm(t('libConfirmDel'))) return;
+  writeLib(readLib().filter(e => e.id !== id));
+  renderLibrary();
+  showToast(t('toastDeleted'));
+}
+
+function clearLibrary() {
+  if (!confirm(t('libConfirmClear'))) return;
+  writeLib([]);
+  renderLibrary();
+  showToast(t('toastCleared'));
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+
+// ---------- EXPORT / IMPORT ----------
+function openExport() { openModal('modalExport'); }
+
+function downloadFile(fmt) {
+  const d = gatherData();
+  if (!d.objective) { showToast(t('toastNoObj')); return; }
+  let content, mime, ext;
+  if (fmt === 'json') {
+    content = JSON.stringify(buildJSON(d), null, 2); mime = 'application/json'; ext = 'json';
+  } else {
+    content = buildPrompt(d); mime = 'text/plain'; ext = fmt === 'md' ? 'md' : 'txt';
+  }
+  const slug = (d.objective.slice(0, 40).replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '') || 'prompt').toLowerCase();
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `trammel-${slug}.${ext}`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast(t('toastDownloaded') + ' .' + ext);
+}
+
+function importJSON() {
+  const raw = document.getElementById('importArea').value.trim();
+  if (!raw) return;
+  let obj;
+  try { obj = JSON.parse(raw); } catch (e) { showToast(t('expBadImport')); return; }
+  const d = fromJSON(obj);
+  if (!d) { showToast(t('expBadImport')); return; }
+  applyData(d);
+  closeModal('modalExport');
+  showToast(t('expImported'));
+}
+
+// Convert exported JSON shape back to flat data
+function fromJSON(o) {
+  if (!o || typeof o !== 'object') return null;
+  try {
+    return {
+      objective: o.objective || '',
+      domain: o.domain || '',
+      successCriteria: o.success_criteria || '',
+      inScope: o.scope?.in_scope || '',
+      outScope: o.scope?.out_of_scope || '',
+      depth: o.scope?.depth || 'standard',
+      tools: (o.tools || []).map(x => typeof x === 'string' ? x : x.id),
+      subtasks: (o.task_decomposition || []).map(s => ({ name: s.name || '', desc: s.description || '', data: s.data_focus || '' })),
+      role: o.role?.persona || '',
+      tone: o.role?.tone || 'professional',
+      format: o.output?.format || 'markdown',
+      lengthTarget: o.output?.length || 'moderate',
+      customFormat: o.output?.custom_instructions || '',
+      background: o.context?.background || '',
+      inputData: o.context?.input_data || '',
+      audience: o.context?.audience || '',
+      constraints: o.constraints?.must_not || '',
+      mustDo: o.constraints?.must || '',
+      edgeCases: o.constraints?.edge_cases || '',
+      selfLearn: !!o.self_learning?.enabled,
+      iterationStrategy: o.self_learning?.strategy || 'reflect',
+      maxIterations: String(o.self_learning?.max_iterations || '2'),
+      improvementFocus: o.self_learning?.improvement_focus || '',
+    };
+  } catch (e) { return null; }
+}
+
+// ---------- APPLY DATA into the form (used by import, library, templates) ----------
+function applyData(d) {
+  resetAllSilent();
+  const set = (id, v) => { const el = document.getElementById(id); if (el != null) el.value = v || ''; };
+  set('objective', d.objective);
+  // domain may be a preset or custom
+  const domainSel = document.getElementById('domain');
+  const presets = Array.from(domainSel.options).map(o => o.value);
+  if (d.domain && presets.includes(d.domain)) {
+    domainSel.value = d.domain;
+    document.getElementById('domainCustom').style.display = 'none';
+  } else if (d.domain) {
+    domainSel.value = 'custom';
+    document.getElementById('domainCustom').style.display = 'block';
+    document.getElementById('domainCustom').value = d.domain;
+  } else { domainSel.value = ''; }
+  set('successCriteria', d.successCriteria);
+  set('inScope', d.inScope);
+  set('outScope', d.outScope);
+  if (d.depth) document.getElementById('depth').value = d.depth;
+  set('role', d.role);
+  if (d.tone) document.getElementById('tone').value = d.tone;
+  if (d.format) document.getElementById('format').value = d.format;
+  if (d.lengthTarget) document.getElementById('lengthTarget').value = d.lengthTarget;
+  set('customFormat', d.customFormat);
+  set('background', d.background);
+  set('inputData', d.inputData);
+  set('audience', d.audience);
+  set('constraints', d.constraints);
+  set('mustDo', d.mustDo);
+  set('edgeCases', d.edgeCases);
+  // tools
+  (d.tools || []).forEach(tool => {
+    const chip = document.querySelector(`[data-tool="${tool}"]`);
+    if (chip) { selectedTools.add(tool); chip.classList.add('selected'); }
+    else { // custom tool
+      const ct = document.getElementById('customTools');
+      ct.value = (ct.value ? ct.value + '\n' : '') + tool;
+    }
+  });
+  // self-learn
+  if (d.selfLearn) {
+    document.getElementById('toggleSelfLearn').classList.add('on');
+    document.getElementById('selfLearnSection').style.display = 'block';
+    if (d.iterationStrategy) document.getElementById('iterationStrategy').value = d.iterationStrategy;
+    if (d.maxIterations) document.getElementById('maxIterations').value = d.maxIterations;
+    set('improvementFocus', d.improvementFocus);
+  }
+  // subtasks
+  const list = document.getElementById('subtaskList');
+  list.innerHTML = '';
+  subtaskCounter = 0;
+  const subs = (d.subtasks && d.subtasks.length) ? d.subtasks : [{ name: '', desc: '', data: '' }];
+  subs.forEach(st => {
+    subtaskCounter++;
+    const num = subtaskCounter;
+    const card = document.createElement('div');
+    card.className = 'subtask-card'; card.id = `subtask-${num}`;
+    card.innerHTML = `
+      <button class="remove-subtask" onclick="removeSubtask(${num})" title="Remove">✕</button>
+      <div class="subtask-num">${t('s4Subtask')} ${num}</div>
+      <input type="text" class="subtask-name" value="${escapeHtml(st.name || '')}" data-ph="s4NamePh" placeholder="${t('s4NamePh')}" oninput="updatePreview()">
+      <textarea class="subtask-desc" data-ph="s4DescPh" placeholder="${t('s4DescPh')}" oninput="updatePreview()">${escapeHtml(st.desc || '')}</textarea>
+      <label style="margin-top:6px;margin-bottom:2px;">${t('s4DataLabel')}</label>
+      <input type="text" class="subtask-data" value="${escapeHtml(st.data || '')}" data-ph="s4DataPh" placeholder="${t('s4DataPh')}" oninput="updatePreview()">`;
+    list.appendChild(card);
+  });
+  updatePreview();
+}
+
+// ---------- TEMPLATES ----------
+function openTemplates() { renderTemplates(); openModal('modalTemplates'); }
+
+function renderTemplates() {
+  const order = [
+    ['competitive', t('tplCompetitive'), t('tplCompetitiveDesc')],
+    ['dataAnalysis', t('tplDataAnalysis'), t('tplDataAnalysisDesc')],
+    ['contentWriting', t('tplContentWriting'), t('tplContentWritingDesc')],
+    ['apiDesign', t('tplApiDesign'), t('tplApiDesignDesc')],
+    ['codeReview', t('tplCodeReview'), t('tplCodeReviewDesc')],
+    ['securityAudit', t('tplSecurityAudit'), t('tplSecurityAuditDesc')],
+  ];
+  document.getElementById('tplBody').innerHTML = order.map(([k, name, desc]) =>
+    `<div class="tpl-item">
+      <div class="lib-item-top">
+        <div><div class="lib-name">${name}</div><div class="tpl-desc">${desc}</div></div>
+        <div class="lib-actions"><button class="btn btn-success" onclick="useTemplate('${k}')">${t('tplUse')}</button></div>
+      </div>
+    </div>`).join('');
+}
+
+function useTemplate(key) {
+  const tpl = TEMPLATES[key];
+  if (!tpl) return;
+  const L = currentLang;
+  const d = {};
+  for (const k in tpl) {
+    if (k === 'tools') { d.tools = tpl.tools; }
+    else if (k === 'subtasks') {
+      d.subtasks = tpl.subtasks.map(s => ({ name: val(s.name, L), desc: val(s.desc, L), data: val(s.data, L) }));
+    } else { d[k] = val(tpl[k], L); }
+  }
+  applyData(d);
+  closeModal('modalTemplates');
+  showToast(t('toastLoaded'));
+}
+
+// ---------- TEMPLATE LIBRARY DATA ----------
+const TEMPLATES = {
+  competitive: {
+    objective: { en: 'Analyze the competitive landscape for a SaaS startup offering AI-powered customer support automation in Latin America', es: 'Analizar el panorama competitivo para una startup SaaS que ofrece automatización de soporte al cliente con IA en América Latina', pt: 'Analisar o cenário competitivo para uma startup SaaS de automação de suporte ao cliente com IA na América Latina' },
+    domain: 'Marketing & Growth',
+    successCriteria: { en: 'A prioritized list of 5-7 competitors with revenue estimates, funding stage, key differentiators, and a positioning map', es: 'Una lista priorizada de 5-7 competidores con estimados de ingresos, etapa de funding, diferenciadores y mapa de posicionamiento', pt: 'Uma lista priorizada de 5-7 concorrentes com estimativas de receita, estágio de investimento, diferenciais e mapa de posicionamento' },
+    inScope: { en: 'LATAM market, companies >$1M ARR, AI/ML products, direct and indirect competitors', es: 'Mercado LATAM, empresas >$1M ARR, productos IA/ML, competidores directos e indirectos', pt: 'Mercado LATAM, empresas >$1M ARR, produtos IA/ML, concorrentes diretos e indiretos' },
+    outScope: { en: 'Companies with no AI, markets outside LATAM, <$500K ARR', es: 'Empresas sin IA, mercados fuera de LATAM, <$500K ARR', pt: 'Empresas sem IA, mercados fora da LATAM, <$500K ARR' },
+    depth: 'deep', tone: 'professional', format: 'mixed', lengthTarget: 'comprehensive',
+    role: { en: 'Senior competitive intelligence analyst with 10+ years in LATAM SaaS markets', es: 'Analista senior de inteligencia competitiva con 10+ años en mercados SaaS LATAM', pt: 'Analista sênior de inteligência competitiva com 10+ anos em mercados SaaS LATAM' },
+    mustDo: { en: 'Include revenue estimates with confidence levels. Cite sources. Provide a positioning matrix.', es: 'Incluir estimados de ingresos con niveles de confianza. Citar fuentes. Dar matriz de posicionamiento.', pt: 'Incluir estimativas de receita com níveis de confiança. Citar fontes. Fornecer matriz de posicionamento.' },
+    tools: ['web_search', 'data_analysis'],
+    subtasks: [
+      { name: { en: 'Identify Competitors', es: 'Identificar Competidores', pt: 'Identificar Concorrentes' }, desc: { en: 'Find all relevant competitors in the space', es: 'Encontrar todos los competidores relevantes', pt: 'Encontrar todos os concorrentes relevantes' }, data: { en: 'Competitor sites, G2/Capterra, funding databases', es: 'Sitios de competidores, G2/Capterra, bases de funding', pt: 'Sites de concorrentes, G2/Capterra, bases de investimento' } },
+      { name: { en: 'Analyze Positioning', es: 'Analizar Posicionamiento', pt: 'Analisar Posicionamento' }, desc: { en: 'Map each competitor: price, features, segment', es: 'Mapear cada competidor: precio, funciones, segmento', pt: 'Mapear cada concorrente: preço, recursos, segmento' }, data: { en: 'Pricing pages, feature tables, reviews', es: 'Páginas de precios, tablas de funciones, reseñas', pt: 'Páginas de preços, tabelas de recursos, avaliações' } },
+    ],
+  },
+  dataAnalysis: {
+    objective: { en: 'Explore a sales dataset to identify revenue drivers and deliver actionable insights with visualizations', es: 'Explorar un dataset de ventas para identificar drivers de ingresos y entregar insights accionables con visualizaciones', pt: 'Explorar um dataset de vendas para identificar drivers de receita e entregar insights acionáveis com visualizações' },
+    domain: 'Data Science & Analytics',
+    successCriteria: { en: 'Top 3-5 revenue drivers identified with statistical support, plus 3+ charts and a prioritized recommendation list', es: 'Top 3-5 drivers de ingresos con soporte estadístico, más 3+ gráficas y lista priorizada de recomendaciones', pt: 'Top 3-5 drivers de receita com suporte estatístico, mais 3+ gráficos e lista priorizada de recomendações' },
+    inScope: { en: 'Provided dataset only, descriptive + correlation analysis, segment breakdowns', es: 'Solo el dataset provisto, análisis descriptivo + correlación, desglose por segmento', pt: 'Apenas o dataset fornecido, análise descritiva + correlação, divisão por segmento' },
+    outScope: { en: 'External data sources, causal claims without experiment, predictive modeling unless asked', es: 'Fuentes externas, afirmaciones causales sin experimento, modelado predictivo salvo que se pida', pt: 'Fontes externas, afirmações causais sem experimento, modelagem preditiva salvo se solicitado' },
+    depth: 'standard', tone: 'technical', format: 'mixed', lengthTarget: 'moderate',
+    role: { en: 'Senior data analyst fluent in Python/pandas and statistical reasoning', es: 'Analista de datos senior con dominio de Python/pandas y razonamiento estadístico', pt: 'Analista de dados sênior fluente em Python/pandas e raciocínio estatístico' },
+    mustDo: { en: 'State assumptions. Quantify findings. Flag data quality issues. Charts must have labeled axes.', es: 'Declarar supuestos. Cuantificar hallazgos. Señalar problemas de calidad de datos. Gráficas con ejes etiquetados.', pt: 'Declarar suposições. Quantificar achados. Sinalizar problemas de qualidade. Gráficos com eixos rotulados.' },
+    tools: ['code_execution', 'data_analysis', 'file_read_write'],
+    subtasks: [
+      { name: { en: 'Profile & Clean', es: 'Perfilar y Limpiar', pt: 'Perfilar e Limpar' }, desc: { en: 'Inspect schema, types, missing values, outliers', es: 'Inspeccionar esquema, tipos, faltantes, outliers', pt: 'Inspecionar esquema, tipos, faltantes, outliers' }, data: { en: 'Column dtypes, null counts, distributions', es: 'Tipos de columnas, conteo de nulos, distribuciones', pt: 'Tipos de colunas, contagem de nulos, distribuições' } },
+      { name: { en: 'Find Drivers', es: 'Encontrar Drivers', pt: 'Encontrar Drivers' }, desc: { en: 'Correlation + segment analysis vs revenue', es: 'Análisis de correlación + segmentos vs ingresos', pt: 'Análise de correlação + segmentos vs receita' }, data: { en: 'Correlation matrix, groupby aggregates', es: 'Matriz de correlación, agregados groupby', pt: 'Matriz de correlação, agregados groupby' } },
+    ],
+  },
+  contentWriting: {
+    objective: { en: 'Write an SEO-optimized long-form blog post that ranks for a target keyword and converts readers', es: 'Escribir un artículo de blog extenso optimizado para SEO que posicione para una keyword objetivo y convierta lectores', pt: 'Escrever um post de blog extenso otimizado para SEO que rankeie para uma palavra-chave alvo e converta leitores' },
+    domain: 'Creative & Content',
+    successCriteria: { en: 'A 1500+ word post with H2/H3 structure, target keyword in title/intro/headers, meta description, and a clear CTA', es: 'Un artículo de 1500+ palabras con estructura H2/H3, keyword en título/intro/headers, meta descripción y CTA claro', pt: 'Um post de 1500+ palavras com estrutura H2/H3, palavra-chave em título/intro/headers, meta descrição e CTA claro' },
+    inScope: { en: 'One primary keyword + 3-5 secondary, internal linking suggestions, reader-first tone', es: 'Una keyword primaria + 3-5 secundarias, sugerencias de enlaces internos, tono centrado en el lector', pt: 'Uma palavra-chave primária + 3-5 secundárias, sugestões de links internos, tom centrado no leitor' },
+    outScope: { en: 'Keyword stuffing, fabricated stats, plagiarized content', es: 'Saturación de keywords, estadísticas inventadas, contenido plagiado', pt: 'Excesso de palavras-chave, estatísticas inventadas, conteúdo plagiado' },
+    depth: 'standard', tone: 'conversational', format: 'markdown', lengthTarget: 'comprehensive',
+    role: { en: 'Senior content strategist and SEO copywriter', es: 'Estratega de contenido senior y copywriter SEO', pt: 'Estrategista de conteúdo sênior e copywriter SEO' },
+    mustDo: { en: 'Keyword in first 100 words. Scannable structure. Original examples. End with a CTA.', es: 'Keyword en las primeras 100 palabras. Estructura escaneable. Ejemplos originales. Terminar con CTA.', pt: 'Palavra-chave nas primeiras 100 palavras. Estrutura escaneável. Exemplos originais. Terminar com CTA.' },
+    tools: ['web_search'],
+    subtasks: [
+      { name: { en: 'Outline', es: 'Esquema', pt: 'Esboço' }, desc: { en: 'Build an H2/H3 outline around search intent', es: 'Construir esquema H2/H3 según intención de búsqueda', pt: 'Construir esboço H2/H3 conforme intenção de busca' }, data: { en: 'SERP analysis, related questions', es: 'Análisis de SERP, preguntas relacionadas', pt: 'Análise de SERP, perguntas relacionadas' } },
+      { name: { en: 'Draft & Optimize', es: 'Redactar y Optimizar', pt: 'Redigir e Otimizar' }, desc: { en: 'Write the post and weave keywords naturally', es: 'Escribir el post e integrar keywords naturalmente', pt: 'Escrever o post e integrar palavras-chave naturalmente' }, data: { en: 'Keyword list, brand voice notes', es: 'Lista de keywords, notas de voz de marca', pt: 'Lista de palavras-chave, notas de voz da marca' } },
+    ],
+  },
+  apiDesign: {
+    objective: { en: 'Design a REST API for a multi-tenant task management app with auth, schemas, and error handling', es: 'Diseñar una API REST para una app de gestión de tareas multi-tenant con auth, esquemas y manejo de errores', pt: 'Projetar uma API REST para um app de gestão de tarefas multi-tenant com auth, esquemas e tratamento de erros' },
+    domain: 'Software Engineering',
+    successCriteria: { en: 'OpenAPI-style endpoint list, request/response schemas, auth flow, status codes, and pagination strategy', es: 'Lista de endpoints estilo OpenAPI, esquemas request/response, flujo de auth, status codes y estrategia de paginación', pt: 'Lista de endpoints estilo OpenAPI, esquemas request/response, fluxo de auth, status codes e estratégia de paginação' },
+    inScope: { en: 'CRUD for tasks/projects/users, JWT auth, RBAC, rate limiting, versioning', es: 'CRUD de tareas/proyectos/usuarios, auth JWT, RBAC, rate limiting, versionado', pt: 'CRUD de tarefas/projetos/usuários, auth JWT, RBAC, rate limiting, versionamento' },
+    outScope: { en: 'Frontend, deployment infra, billing system', es: 'Frontend, infra de deployment, sistema de facturación', pt: 'Frontend, infra de deployment, sistema de faturamento' },
+    depth: 'deep', tone: 'technical', format: 'mixed', lengthTarget: 'comprehensive',
+    role: { en: 'Senior backend architect specializing in API design and security', es: 'Arquitecto backend senior especializado en diseño de APIs y seguridad', pt: 'Arquiteto backend sênior especializado em design de APIs e segurança' },
+    mustDo: { en: 'Use consistent naming. Define error envelope. Specify auth on every endpoint. Include rate limit headers.', es: 'Nombres consistentes. Definir envelope de errores. Especificar auth por endpoint. Incluir headers de rate limit.', pt: 'Nomes consistentes. Definir envelope de erros. Especificar auth por endpoint. Incluir headers de rate limit.' },
+    tools: ['code_execution', 'file_read_write'],
+    subtasks: [
+      { name: { en: 'Resource Model', es: 'Modelo de Recursos', pt: 'Modelo de Recursos' }, desc: { en: 'Define entities, relationships, and schemas', es: 'Definir entidades, relaciones y esquemas', pt: 'Definir entidades, relações e esquemas' }, data: { en: 'Entity fields, constraints, tenant isolation', es: 'Campos de entidades, restricciones, aislamiento de tenant', pt: 'Campos de entidades, restrições, isolamento de tenant' } },
+      { name: { en: 'Endpoints & Auth', es: 'Endpoints y Auth', pt: 'Endpoints e Auth' }, desc: { en: 'Map routes, methods, auth scopes, and errors', es: 'Mapear rutas, métodos, scopes de auth y errores', pt: 'Mapear rotas, métodos, scopes de auth e erros' }, data: { en: 'Route table, JWT claims, status codes', es: 'Tabla de rutas, claims JWT, status codes', pt: 'Tabela de rotas, claims JWT, status codes' } },
+    ],
+  },
+  codeReview: {
+    objective: { en: 'Review a pull request for bugs, security issues, performance, and maintainability', es: 'Revisar un pull request por bugs, problemas de seguridad, performance y mantenibilidad', pt: 'Revisar um pull request por bugs, problemas de segurança, performance e manutenibilidade' },
+    domain: 'Software Engineering',
+    successCriteria: { en: 'Categorized findings (blocker/major/minor/nit) with file:line refs and concrete fix suggestions', es: 'Hallazgos categorizados (bloqueante/mayor/menor/nit) con refs archivo:línea y sugerencias de fix concretas', pt: 'Achados categorizados (bloqueador/maior/menor/nit) com refs arquivo:linha e sugestões de correção concretas' },
+    inScope: { en: 'Logic, security, performance, readability, test coverage of the diff', es: 'Lógica, seguridad, performance, legibilidad, cobertura de tests del diff', pt: 'Lógica, segurança, performance, legibilidade, cobertura de testes do diff' },
+    outScope: { en: 'Unrelated files, style nitpicks already enforced by linters, architecture rewrites', es: 'Archivos no relacionados, nitpicks de estilo ya cubiertos por linters, reescrituras de arquitectura', pt: 'Arquivos não relacionados, nitpicks de estilo já cobertos por linters, reescritas de arquitetura' },
+    depth: 'deep', tone: 'concise', format: 'mixed', lengthTarget: 'moderate',
+    role: { en: 'Senior engineer doing a rigorous but constructive code review', es: 'Ingeniero senior haciendo un code review riguroso pero constructivo', pt: 'Engenheiro sênior fazendo um code review rigoroso mas construtivo' },
+    mustDo: { en: 'Reference file:line. Explain why, not just what. Suggest a fix. Separate blockers from nits.', es: 'Referenciar archivo:línea. Explicar el porqué, no solo el qué. Sugerir fix. Separar bloqueantes de nits.', pt: 'Referenciar arquivo:linha. Explicar o porquê, não só o quê. Sugerir correção. Separar bloqueadores de nits.' },
+    tools: ['code_execution', 'file_read_write'],
+    subtasks: [
+      { name: { en: 'Correctness & Security', es: 'Correctitud y Seguridad', pt: 'Correção e Segurança' }, desc: { en: 'Hunt logic bugs, injection, auth gaps, unsafe input', es: 'Buscar bugs de lógica, inyección, fallos de auth, input inseguro', pt: 'Caçar bugs de lógica, injeção, falhas de auth, input inseguro' }, data: { en: 'Diff hunks, data flow, trust boundaries', es: 'Hunks del diff, flujo de datos, límites de confianza', pt: 'Hunks do diff, fluxo de dados, limites de confiança' } },
+      { name: { en: 'Maintainability', es: 'Mantenibilidad', pt: 'Manutenibilidade' }, desc: { en: 'Assess naming, structure, tests, and docs', es: 'Evaluar nombres, estructura, tests y docs', pt: 'Avaliar nomes, estrutura, testes e docs' }, data: { en: 'Complexity, duplication, test coverage', es: 'Complejidad, duplicación, cobertura de tests', pt: 'Complexidade, duplicação, cobertura de testes' } },
+    ],
+  },
+  securityAudit: {
+    objective: { en: 'Audit a web application for common vulnerabilities and recommend prioritized remediations', es: 'Auditar una aplicación web por vulnerabilidades comunes y recomendar remediaciones priorizadas', pt: 'Auditar uma aplicação web por vulnerabilidades comuns e recomendar remediações priorizadas' },
+    domain: 'Cybersecurity',
+    successCriteria: { en: 'Findings mapped to OWASP Top 10 with severity (CVSS-ish), evidence, and a prioritized fix plan', es: 'Hallazgos mapeados al OWASP Top 10 con severidad (tipo CVSS), evidencia y plan de remediación priorizado', pt: 'Achados mapeados ao OWASP Top 10 com severidade (tipo CVSS), evidência e plano de correção priorizado' },
+    inScope: { en: 'Authn/authz, injection, XSS, CSRF, secrets handling, dependency risks, access control', es: 'Autenticación/autorización, inyección, XSS, CSRF, manejo de secretos, riesgos de dependencias, control de acceso', pt: 'Autenticação/autorização, injeção, XSS, CSRF, manejo de segredos, riscos de dependências, controle de acesso' },
+    outScope: { en: 'Active exploitation, DoS testing, social engineering, physical security', es: 'Explotación activa, pruebas de DoS, ingeniería social, seguridad física', pt: 'Exploração ativa, testes de DoS, engenharia social, segurança física' },
+    depth: 'expert', tone: 'professional', format: 'mixed', lengthTarget: 'comprehensive',
+    role: { en: 'Application security engineer focused on defensive review (not active exploitation)', es: 'Ingeniero de seguridad de aplicaciones enfocado en revisión defensiva (no explotación activa)', pt: 'Engenheiro de segurança de aplicações focado em revisão defensiva (não exploração ativa)' },
+    mustDo: { en: 'Map to OWASP. Rate severity. Provide evidence. Recommend least-privilege fixes. No live exploitation.', es: 'Mapear a OWASP. Calificar severidad. Dar evidencia. Recomendar fixes de menor privilegio. Sin explotación en vivo.', pt: 'Mapear ao OWASP. Classificar severidade. Dar evidência. Recomendar correções de menor privilégio. Sem exploração ao vivo.' },
+    edgeCases: { en: 'Defensive analysis only — do not run exploits against live systems', es: 'Análisis defensivo solamente — no ejecutar exploits contra sistemas en vivo', pt: 'Análise defensiva apenas — não executar exploits contra sistemas ao vivo' },
+    tools: ['code_execution', 'file_read_write', 'web_search'],
+    subtasks: [
+      { name: { en: 'Surface Mapping', es: 'Mapeo de Superficie', pt: 'Mapeamento de Superfície' }, desc: { en: 'Map inputs, auth flows, and trust boundaries', es: 'Mapear inputs, flujos de auth y límites de confianza', pt: 'Mapear inputs, fluxos de auth e limites de confiança' }, data: { en: 'Routes, params, session handling, dependencies', es: 'Rutas, parámetros, manejo de sesión, dependencias', pt: 'Rotas, parâmetros, manejo de sessão, dependências' } },
+      { name: { en: 'Findings & Fixes', es: 'Hallazgos y Fixes', pt: 'Achados e Correções' }, desc: { en: 'Document vulns by severity with remediations', es: 'Documentar vulns por severidad con remediaciones', pt: 'Documentar vulns por severidade com remediações' }, data: { en: 'OWASP categories, code refs, fix steps', es: 'Categorías OWASP, refs de código, pasos de fix', pt: 'Categorias OWASP, refs de código, passos de correção' } },
+    ],
+  },
+};
+
 // Initialize
+initTheme();
 updatePreview();
 </script>
 </body>
