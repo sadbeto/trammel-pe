@@ -443,6 +443,146 @@ body.light .app-header h1 span { opacity: 0.55; }
   box-shadow: 0 6px 20px rgba(0,0,0,0.35);
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ===== V2: Lazy Builder ===== */
+.mode-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.mode-switch .btn {
+  justify-content: center;
+  font-weight: 700;
+  padding: 10px 12px;
+}
+.mode-switch .active {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none;
+  color: #fff;
+  box-shadow: var(--glow);
+}
+.lazy-hero {
+  background: radial-gradient(circle at top left, rgba(56,189,248,0.16), transparent 35%), var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 14px;
+}
+.lazy-kicker {
+  color: var(--accent3);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 4px;
+}
+.lazy-title {
+  font-size: 1.35rem;
+  line-height: 1.2;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+.lazy-subtitle {
+  color: var(--text2);
+  font-size: 0.88rem;
+  margin-bottom: 14px;
+}
+#lazyPrompt {
+  min-height: 150px;
+  font-size: 1rem;
+  padding: 14px;
+  border-width: 2px;
+}
+.lazy-toolbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.lazy-row-title {
+  margin: 14px 0 8px;
+  font-size: 0.78rem;
+  color: var(--accent);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.usecase-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+  gap: 8px;
+}
+.usecase-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.usecase-card:hover, .usecase-card.selected {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: var(--glow);
+}
+.usecase-card.selected { background: rgba(56,189,248,0.1); }
+.usecase-emoji { font-size: 1.25rem; margin-bottom: 4px; }
+.usecase-name { font-size: 0.88rem; font-weight: 700; }
+.usecase-desc { color: var(--text2); font-size: 0.74rem; margin-top: 2px; line-height: 1.35; }
+.chip-row {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.lazy-chip {
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 7px 11px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.lazy-chip:hover, .lazy-chip.selected {
+  border-color: var(--accent3);
+  color: var(--accent3);
+  background: rgba(52,211,153,0.08);
+}
+.lazy-actions {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 8px;
+  margin-top: 14px;
+}
+.lazy-actions .btn { justify-content: center; }
+.question-panel {
+  display: none;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 12px;
+}
+.question-panel.open { display: block; }
+.question-panel label {
+  color: var(--text);
+  font-size: 0.78rem;
+  margin-top: 8px;
+}
+.question-panel input {
+  margin-top: 4px;
+}
+.advanced-note {
+  color: var(--text2);
+  font-size: 0.8rem;
+  margin: -4px 0 12px;
+}
+@media (max-width: 820px) {
+  .lazy-actions { grid-template-columns: 1fr; }
+  .usecase-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+}
 </style>
 </head>
 <body>
@@ -468,6 +608,83 @@ body.light .app-header h1 span { opacity: 0.55; }
 <div class="container">
 <!-- ==================== FORM PANEL ==================== -->
 <div class="form-panel" id="formPanel">
+
+  <!-- V2: LAZY BUILDER DEFAULT -->
+  <div class="mode-switch" role="tablist" aria-label="Builder mode">
+    <button class="btn active" id="lazyModeBtn" onclick="setBuilderMode('lazy')" data-i18n="lazyModeBtn">⚡ Lazy Builder</button>
+    <button class="btn" id="advancedModeBtn" onclick="setBuilderMode('advanced')" data-i18n="advancedModeBtn">🛠️ Advanced Builder</button>
+  </div>
+
+  <div id="lazyBuilder">
+    <div class="lazy-hero">
+      <div class="lazy-kicker" data-i18n="lazyKicker">For lazy prompts</div>
+      <div class="lazy-title" data-i18n="lazyTitle">Turn a messy idea into an agent-ready prompt</div>
+      <p class="lazy-subtitle" data-i18n="lazySubtitle">Write one rough thought, pick a few chips, and Trammel builds the structure for you.</p>
+      <textarea id="lazyPrompt" data-ph="lazyPromptPh" placeholder="e.g. I need to analyze my competitors and make a plan" oninput="lazyAutoGenerate(false)"></textarea>
+      <div class="lazy-toolbar">
+        <button class="btn btn-primary" onclick="generateLazyPrompt()" data-i18n="lazyGenerate">⚡ Improve my prompt</button>
+        <button class="btn" onclick="askSmartQuestions()" data-i18n="lazyQuestions">❓ Ask me 3 questions</button>
+        <button class="btn" onclick="clearLazy()" data-i18n="lazyClear">Clear</button>
+      </div>
+    </div>
+
+    <div class="lazy-row-title" data-i18n="lazyUsecaseTitle">Pick the job</div>
+    <div class="usecase-grid" id="lazyUsecases">
+      <div class="usecase-card selected" data-usecase="general" onclick="selectUseCase(this, 'general')"><div class="usecase-emoji">✨</div><div class="usecase-name" data-i18n="ucGeneral">General</div><div class="usecase-desc" data-i18n="ucGeneralDesc">Any task</div></div>
+      <div class="usecase-card" data-usecase="email" onclick="selectUseCase(this, 'email')"><div class="usecase-emoji">✉️</div><div class="usecase-name" data-i18n="ucEmail">Email</div><div class="usecase-desc" data-i18n="ucEmailDesc">Clear message</div></div>
+      <div class="usecase-card" data-usecase="summary" onclick="selectUseCase(this, 'summary')"><div class="usecase-emoji">📝</div><div class="usecase-name" data-i18n="ucSummary">Summary</div><div class="usecase-desc" data-i18n="ucSummaryDesc">Key points</div></div>
+      <div class="usecase-card" data-usecase="data" onclick="selectUseCase(this, 'data')"><div class="usecase-emoji">📊</div><div class="usecase-name" data-i18n="ucData">Analyze Data</div><div class="usecase-desc" data-i18n="ucDataDesc">Find what matters</div></div>
+      <div class="usecase-card" data-usecase="prd" onclick="selectUseCase(this, 'prd')"><div class="usecase-emoji">📐</div><div class="usecase-name" data-i18n="ucPrd">Build PRD</div><div class="usecase-desc" data-i18n="ucPrdDesc">Product plan</div></div>
+      <div class="usecase-card" data-usecase="code" onclick="selectUseCase(this, 'code')"><div class="usecase-emoji">💻</div><div class="usecase-name" data-i18n="ucCode">Code Review</div><div class="usecase-desc" data-i18n="ucCodeDesc">Bugs and fixes</div></div>
+      <div class="usecase-card" data-usecase="research" onclick="selectUseCase(this, 'research')"><div class="usecase-emoji">🔎</div><div class="usecase-name" data-i18n="ucResearch">Research</div><div class="usecase-desc" data-i18n="ucResearchDesc">Sources and synthesis</div></div>
+      <div class="usecase-card" data-usecase="agent" onclick="selectUseCase(this, 'agent')"><div class="usecase-emoji">🤖</div><div class="usecase-name" data-i18n="ucAgent">Agent Workflow</div><div class="usecase-desc" data-i18n="ucAgentDesc">Tools and steps</div></div>
+    </div>
+
+    <div class="lazy-row-title" data-i18n="lazyToneTitle">Tune it with clicks</div>
+    <div class="chip-row" data-chip-group="tone">
+      <button class="lazy-chip selected" data-value="professional" onclick="selectLazyChip(this, 'tone')" data-i18n="chipProfessional">Professional</button>
+      <button class="lazy-chip" data-value="concise" onclick="selectLazyChip(this, 'tone')" data-i18n="chipConcise">Concise</button>
+      <button class="lazy-chip" data-value="executive" onclick="selectLazyChip(this, 'tone')" data-i18n="chipExecutive">Executive</button>
+      <button class="lazy-chip" data-value="technical" onclick="selectLazyChip(this, 'tone')" data-i18n="chipTechnical">Technical</button>
+      <button class="lazy-chip" data-value="conversational" onclick="selectLazyChip(this, 'tone')" data-i18n="chipFriendly">Friendly</button>
+    </div>
+
+    <div class="lazy-row-title" data-i18n="lazyDepthTitle">Depth</div>
+    <div class="chip-row" data-chip-group="depth">
+      <button class="lazy-chip" data-value="quick" onclick="selectLazyChip(this, 'depth')" data-i18n="chipQuick">Quick</button>
+      <button class="lazy-chip selected" data-value="standard" onclick="selectLazyChip(this, 'depth')" data-i18n="chipStandard">Standard</button>
+      <button class="lazy-chip" data-value="deep" onclick="selectLazyChip(this, 'depth')" data-i18n="chipDeep">Deep</button>
+      <button class="lazy-chip" data-value="expert" onclick="selectLazyChip(this, 'depth')" data-i18n="chipExpert">Expert</button>
+    </div>
+
+    <div class="lazy-row-title" data-i18n="lazyOutputTitle">Output</div>
+    <div class="chip-row" data-chip-group="format">
+      <button class="lazy-chip selected" data-value="markdown" onclick="selectLazyChip(this, 'format')">Markdown</button>
+      <button class="lazy-chip" data-value="table" onclick="selectLazyChip(this, 'format')" data-i18n="chipTable">Table</button>
+      <button class="lazy-chip" data-value="bulletlist" onclick="selectLazyChip(this, 'format')" data-i18n="chipBullets">Bullets</button>
+      <button class="lazy-chip" data-value="json" onclick="selectLazyChip(this, 'format')">JSON</button>
+      <button class="lazy-chip" data-value="mixed" onclick="selectLazyChip(this, 'format')" data-i18n="chipMixed">Mixed</button>
+    </div>
+
+    <div class="lazy-row-title" data-i18n="lazyTargetTitle">Target AI</div>
+    <div class="chip-row" data-chip-group="target">
+      <button class="lazy-chip selected" data-value="Any LLM" onclick="selectLazyChip(this, 'target')" data-i18n="chipAnyLLM">Any LLM</button>
+      <button class="lazy-chip" data-value="ChatGPT" onclick="selectLazyChip(this, 'target')">ChatGPT</button>
+      <button class="lazy-chip" data-value="Claude" onclick="selectLazyChip(this, 'target')">Claude</button>
+      <button class="lazy-chip" data-value="Gemini" onclick="selectLazyChip(this, 'target')">Gemini</button>
+      <button class="lazy-chip" data-value="AI agent" onclick="selectLazyChip(this, 'target')" data-i18n="chipAgentTarget">AI Agent</button>
+    </div>
+
+    <div class="question-panel" id="smartQuestions"></div>
+
+    <div class="lazy-actions">
+      <button class="btn btn-primary" onclick="generateLazyPrompt()" data-i18n="lazyGenerateBig">⚡ Generate structured prompt</button>
+      <button class="btn" onclick="setBuilderMode('advanced')" data-i18n="lazyFineTune">Fine tune in Advanced</button>
+    </div>
+  </div>
+
+  <div id="advancedBuilder" style="display:none;">
+    <p class="advanced-note" data-i18n="advancedNote">Advanced mode keeps the full 9-step framework for precision work.</p>
 
   <!-- STEP 1: OBJECTIVE -->
   <div class="section">
@@ -652,6 +869,8 @@ body.light .app-header h1 span { opacity: 0.55; }
     <label for="improvementFocus" data-i18n="s9FocusLabel">What should improve with each iteration?</label>
     <textarea id="improvementFocus" data-ph="s9FocusPh" placeholder="e.g. Accuracy of claims, completeness of coverage, specificity of recommendations, clarity of presentation" oninput="updatePreview()"></textarea>
   </div>
+
+  </div><!-- /advancedBuilder -->
 
 </div>
 
@@ -956,6 +1175,26 @@ const I18N = {
     tplSecurityAudit: "Security Audit", tplSecurityAuditDesc: "Audit an app for vulnerabilities and recommend fixes.",
     tplCompetitive: "Competitive Analysis", tplCompetitiveDesc: "Map competitors, positioning, and strategic gaps.",
     tplUse: "Use",
+
+    // V2 Lazy Builder keys
+    lazyModeBtn: "⚡ Lazy Builder", advancedModeBtn: "🛠️ Advanced Builder",
+    lazyKicker: "For lazy prompts", lazyTitle: "Turn a messy idea into an agent-ready prompt",
+    lazySubtitle: "Write one rough thought, pick a few chips, and Trammel builds the structure for you.",
+    lazyPromptPh: "e.g. I need to analyze my competitors and make a plan",
+    lazyGenerate: "⚡ Improve my prompt", lazyQuestions: "❓ Ask me 3 questions", lazyClear: "Clear",
+    lazyUsecaseTitle: "Pick the job", lazyToneTitle: "Tune it with clicks", lazyDepthTitle: "Depth",
+    lazyOutputTitle: "Output", lazyTargetTitle: "Target AI", lazyGenerateBig: "⚡ Generate structured prompt",
+    lazyFineTune: "Fine tune in Advanced", advancedNote: "Advanced mode keeps the full 9-step framework for precision work.",
+    ucGeneral: "General", ucGeneralDesc: "Any task", ucEmail: "Email", ucEmailDesc: "Clear message",
+    ucSummary: "Summary", ucSummaryDesc: "Key points", ucData: "Analyze Data", ucDataDesc: "Find what matters",
+    ucPrd: "Build PRD", ucPrdDesc: "Product plan", ucCode: "Code Review", ucCodeDesc: "Bugs and fixes",
+    ucResearch: "Research", ucResearchDesc: "Sources and synthesis", ucAgent: "Agent Workflow", ucAgentDesc: "Tools and steps",
+    chipProfessional: "Professional", chipConcise: "Concise", chipExecutive: "Executive", chipTechnical: "Technical", chipFriendly: "Friendly",
+    chipQuick: "Quick", chipStandard: "Standard", chipDeep: "Deep", chipExpert: "Expert",
+    chipTable: "Table", chipBullets: "Bullets", chipMixed: "Mixed", chipAnyLLM: "Any LLM", chipAgentTarget: "AI Agent",
+    qTitle: "Answer any of these to make it sharper", qAudience: "Who is the audience?", qMustHave: "What must it include?", qAvoid: "What should it avoid?",
+    qContext: "Any context the AI should know?", qExamples: "Any example or style to follow?", qConstraints: "Any constraints or rules?",
+    toastLazyReady: "Prompt upgraded", toastQuestionsReady: "Questions ready",
   },
   es: {
     headerSub: "— Traza el arco de la idea a la ejecución",
@@ -1105,6 +1344,26 @@ const I18N = {
     tplSecurityAudit: "Auditoría de Seguridad", tplSecurityAuditDesc: "Audita una app por vulnerabilidades y recomienda arreglos.",
     tplCompetitive: "Análisis Competitivo", tplCompetitiveDesc: "Mapea competidores, posicionamiento y brechas estratégicas.",
     tplUse: "Usar",
+
+    // V2 Lazy Builder keys
+    lazyModeBtn: "⚡ Lazy Builder", advancedModeBtn: "🛠️ Builder Avanzado",
+    lazyKicker: "Para prompts vagos", lazyTitle: "Convierte una idea messy en un prompt listo para agentes",
+    lazySubtitle: "Escribe una idea suelta, escoge unos botones, y Trammel monta la estructura por ti.",
+    lazyPromptPh: "ej. necesito analizar mis competidores y crear un plan",
+    lazyGenerate: "⚡ Mejora mi prompt", lazyQuestions: "❓ Hazme 3 preguntas", lazyClear: "Limpiar",
+    lazyUsecaseTitle: "Escoge el trabajo", lazyToneTitle: "Ajústalo con clicks", lazyDepthTitle: "Profundidad",
+    lazyOutputTitle: "Salida", lazyTargetTitle: "AI destino", lazyGenerateBig: "⚡ Generar prompt estructurado",
+    lazyFineTune: "Ajustar en Avanzado", advancedNote: "El modo avanzado conserva el framework completo de 9 pasos para trabajos de precisión.",
+    ucGeneral: "General", ucGeneralDesc: "Cualquier tarea", ucEmail: "Email", ucEmailDesc: "Mensaje claro",
+    ucSummary: "Resumen", ucSummaryDesc: "Puntos clave", ucData: "Analizar Data", ucDataDesc: "Encontrar lo importante",
+    ucPrd: "Crear PRD", ucPrdDesc: "Plan de producto", ucCode: "Code Review", ucCodeDesc: "Bugs y fixes",
+    ucResearch: "Research", ucResearchDesc: "Fuentes y síntesis", ucAgent: "Workflow Agente", ucAgentDesc: "Tools y pasos",
+    chipProfessional: "Profesional", chipConcise: "Conciso", chipExecutive: "Ejecutivo", chipTechnical: "Técnico", chipFriendly: "Amigable",
+    chipQuick: "Rápido", chipStandard: "Normal", chipDeep: "Detallado", chipExpert: "Experto",
+    chipTable: "Tabla", chipBullets: "Bullets", chipMixed: "Mixto", chipAnyLLM: "Cualquier LLM", chipAgentTarget: "Agente AI",
+    qTitle: "Contesta cualquiera para afinarlo", qAudience: "¿Quién es la audiencia?", qMustHave: "¿Qué debe incluir sí o sí?", qAvoid: "¿Qué debe evitar?",
+    qContext: "¿Qué contexto debe saber la AI?", qExamples: "¿Algún ejemplo o estilo a seguir?", qConstraints: "¿Restricciones o reglas?",
+    toastLazyReady: "Prompt mejorado", toastQuestionsReady: "Preguntas listas",
   },
   pt: {
     headerSub: "— Traça o arco da ideia à execução",
@@ -1254,6 +1513,26 @@ const I18N = {
     tplSecurityAudit: "Auditoria de Segurança", tplSecurityAuditDesc: "Audite um app por vulnerabilidades e recomende correções.",
     tplCompetitive: "Análise Competitiva", tplCompetitiveDesc: "Mapeie concorrentes, posicionamento e lacunas estratégicas.",
     tplUse: "Usar",
+
+    // V2 Lazy Builder keys
+    lazyModeBtn: "⚡ Lazy Builder", advancedModeBtn: "🛠️ Builder Avançado",
+    lazyKicker: "Para prompts vagos", lazyTitle: "Transforme uma ideia bagunçada em um prompt pronto para agentes",
+    lazySubtitle: "Escreva uma ideia solta, escolha alguns botões, e o Trammel monta a estrutura por você.",
+    lazyPromptPh: "ex. preciso analisar meus concorrentes e criar um plano",
+    lazyGenerate: "⚡ Melhorar meu prompt", lazyQuestions: "❓ Faça 3 perguntas", lazyClear: "Limpar",
+    lazyUsecaseTitle: "Escolha o trabalho", lazyToneTitle: "Ajuste com cliques", lazyDepthTitle: "Profundidade",
+    lazyOutputTitle: "Saída", lazyTargetTitle: "AI destino", lazyGenerateBig: "⚡ Gerar prompt estruturado",
+    lazyFineTune: "Ajustar no Avançado", advancedNote: "O modo avançado mantém o framework completo de 9 passos para trabalhos de precisão.",
+    ucGeneral: "Geral", ucGeneralDesc: "Qualquer tarefa", ucEmail: "Email", ucEmailDesc: "Mensagem clara",
+    ucSummary: "Resumo", ucSummaryDesc: "Pontos-chave", ucData: "Analisar Dados", ucDataDesc: "Encontrar o importante",
+    ucPrd: "Criar PRD", ucPrdDesc: "Plano de produto", ucCode: "Code Review", ucCodeDesc: "Bugs e correções",
+    ucResearch: "Pesquisa", ucResearchDesc: "Fontes e síntese", ucAgent: "Workflow Agente", ucAgentDesc: "Tools e passos",
+    chipProfessional: "Profissional", chipConcise: "Conciso", chipExecutive: "Executivo", chipTechnical: "Técnico", chipFriendly: "Amigável",
+    chipQuick: "Rápido", chipStandard: "Normal", chipDeep: "Detalhado", chipExpert: "Especialista",
+    chipTable: "Tabela", chipBullets: "Bullets", chipMixed: "Misto", chipAnyLLM: "Qualquer LLM", chipAgentTarget: "Agente AI",
+    qTitle: "Responda qualquer uma para afinar", qAudience: "Quem é o público?", qMustHave: "O que deve incluir?", qAvoid: "O que deve evitar?",
+    qContext: "Que contexto a AI deve saber?", qExamples: "Algum exemplo ou estilo a seguir?", qConstraints: "Restrições ou regras?",
+    toastLazyReady: "Prompt melhorado", toastQuestionsReady: "Perguntas prontas",
   }
 };
 
@@ -2020,6 +2299,132 @@ function useTemplate(key) {
   applyData(d);
   closeModal('modalTemplates');
   showToast(t('toastLoaded'));
+}
+
+// ============================================================
+// V2: LAZY BUILDER
+// ============================================================
+let lazyUseCase = 'general';
+const lazyState = { tone: 'professional', depth: 'standard', format: 'markdown', target: 'Any LLM' };
+let lazyTimer = null;
+
+const LAZY_PRESETS = {
+  general: { domain: 'Operations & Automation', role: 'senior prompt engineer who turns vague requests into clear execution plans', tools: [], output: 'mixed' },
+  email: { domain: 'Creative & Content', role: 'senior communications strategist and copywriter', tools: [], output: 'markdown' },
+  summary: { domain: 'Research & Education', role: 'expert analyst who extracts key points and action items from messy information', tools: ['document_processing'], output: 'bulletlist' },
+  data: { domain: 'Data Science & Analytics', role: 'senior data analyst focused on practical business insights', tools: ['data_analysis', 'code_execution'], output: 'mixed' },
+  prd: { domain: 'Product Management', role: 'senior product manager who writes crisp PRDs and acceptance criteria', tools: [], output: 'mixed' },
+  code: { domain: 'Software Engineering', role: 'senior engineer doing a rigorous, constructive code review', tools: ['code_execution', 'file_read_write'], output: 'mixed' },
+  research: { domain: 'Research & Education', role: 'research analyst who verifies sources and synthesizes findings clearly', tools: ['web_search'], output: 'markdown' },
+  agent: { domain: 'Operations & Automation', role: 'AI agent architect who designs tool-aware workflows and verification loops', tools: ['web_search', 'api_calls', 'file_read_write'], output: 'mixed' },
+};
+
+function setBuilderMode(mode) {
+  const lazy = mode !== 'advanced';
+  document.getElementById('lazyBuilder').style.display = lazy ? 'block' : 'none';
+  document.getElementById('advancedBuilder').style.display = lazy ? 'none' : 'block';
+  document.getElementById('lazyModeBtn').classList.toggle('active', lazy);
+  document.getElementById('advancedModeBtn').classList.toggle('active', !lazy);
+}
+
+function selectUseCase(el, key) {
+  lazyUseCase = key;
+  document.querySelectorAll('.usecase-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  lazyAutoGenerate(false);
+}
+
+function selectLazyChip(el, field) {
+  lazyState[field] = el.dataset.value;
+  document.querySelectorAll(`[data-chip-group="${field}"] .lazy-chip`).forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  lazyAutoGenerate(false);
+}
+
+function lazyAutoGenerate(force) {
+  clearTimeout(lazyTimer);
+  if (!force && !document.getElementById('objective').value && document.getElementById('lazyPrompt').value.trim().length < 12) return;
+  lazyTimer = setTimeout(() => generateLazyPrompt(false), force ? 0 : 450);
+}
+
+function clearLazy() {
+  document.getElementById('lazyPrompt').value = '';
+  document.getElementById('smartQuestions').classList.remove('open');
+  document.getElementById('smartQuestions').innerHTML = '';
+  resetAllSilent();
+  updatePreview();
+}
+
+function getLazyAnswers() {
+  return Array.from(document.querySelectorAll('#smartQuestions input'))
+    .map(inp => ({ label: inp.dataset.label || '', value: inp.value.trim() }))
+    .filter(x => x.value);
+}
+
+function lazyDataToAdvanced() {
+  const rough = document.getElementById('lazyPrompt').value.trim();
+  if (!rough) return null;
+  const preset = LAZY_PRESETS[lazyUseCase] || LAZY_PRESETS.general;
+  const answers = getLazyAnswers();
+  const answerText = answers.map(a => `- ${a.label}: ${a.value}`).join('\n');
+  const target = lazyState.target || 'Any LLM';
+  const usecaseName = document.querySelector(`.usecase-card[data-usecase="${lazyUseCase}"] .usecase-name`)?.textContent?.trim() || 'General';
+  return {
+    objective: `${rough}\n\nBuild the best possible prompt for ${target} to execute this task well.`,
+    domain: preset.domain,
+    successCriteria: `The final prompt is specific, actionable, copy-ready, and produces a useful ${usecaseName.toLowerCase()} output with minimal back-and-forth.`,
+    inScope: `Transform the rough request into a structured prompt. Preserve the user's intent. Include only details that help ${target} perform the task better.`,
+    outScope: `Do not overcomplicate it. Do not invent facts. Do not add irrelevant sections. Do not ask the user to fill a long form before helping.`,
+    depth: lazyState.depth,
+    selfLearn: lazyState.depth === 'deep' || lazyState.depth === 'expert',
+    iterationStrategy: 'validate',
+    maxIterations: lazyState.depth === 'expert' ? '3' : '2',
+    improvementFocus: 'clarity, specificity, completeness, and usefulness of the final output',
+    tools: preset.tools || [],
+    subtasks: [
+      { name: 'Clarify intent', desc: 'Infer the user goal from the rough prompt and rewrite it as a precise objective.', data: 'User rough prompt, selected use case, selected target AI' },
+      { name: 'Structure the output', desc: 'Choose the right role, constraints, format, and verification instructions.', data: 'Tone, depth, output format, optional answers' },
+    ],
+    role: preset.role,
+    tone: lazyState.tone,
+    format: lazyState.format || preset.output || 'markdown',
+    lengthTarget: lazyState.depth === 'quick' ? 'brief' : lazyState.depth === 'expert' ? 'comprehensive' : 'moderate',
+    customFormat: `Optimize for ${target}. Make it easy to copy and paste. If the task lacks critical details, include a short "Assumptions" section and proceed with reasonable defaults.`,
+    background: answerText ? `Rough request:\n${rough}\n\nExtra answers:\n${answerText}` : `Rough request:\n${rough}`,
+    inputData: '',
+    audience: answers.find(a => a.label === t('qAudience'))?.value || '',
+    constraints: answers.find(a => a.label === t('qAvoid'))?.value || 'Avoid generic advice, filler, and unnecessary complexity.',
+    mustDo: answers.find(a => a.label === t('qMustHave'))?.value || 'Produce a concrete, usable prompt. Be clear about deliverables and expected output format.',
+    edgeCases: answers.find(a => a.label === t('qConstraints'))?.value || '',
+  };
+}
+
+function generateLazyPrompt(showMsg = true) {
+  const lazyValue = document.getElementById('lazyPrompt').value;
+  const answerValues = Array.from(document.querySelectorAll('#smartQuestions input')).map(inp => inp.value);
+  const d = lazyDataToAdvanced();
+  if (!d) { showToast(t('toastNoObj')); return; }
+  applyData(d);
+  document.getElementById('lazyPrompt').value = lazyValue;
+  Array.from(document.querySelectorAll('#smartQuestions input')).forEach((inp, i) => { inp.value = answerValues[i] || ''; });
+  setBuilderMode('lazy');
+  if (showMsg) showToast(t('toastLazyReady'));
+}
+
+function askSmartQuestions() {
+  const qs = lazyUseCase === 'email'
+    ? [t('qAudience'), t('qMustHave'), t('qAvoid')]
+    : lazyUseCase === 'data'
+      ? [t('qContext'), t('qMustHave'), t('qConstraints')]
+      : lazyUseCase === 'code'
+        ? [t('qContext'), t('qMustHave'), t('qAvoid')]
+        : [t('qAudience'), t('qMustHave'), t('qAvoid')];
+  const panel = document.getElementById('smartQuestions');
+  panel.innerHTML = `<div class="lazy-row-title" style="margin-top:0;">${t('qTitle')}</div>` + qs.map(q =>
+    `<label>${q}</label><input type="text" data-label="${escapeHtml(q)}" oninput="lazyAutoGenerate(false)" placeholder="${escapeHtml(q)}">`
+  ).join('');
+  panel.classList.add('open');
+  showToast(t('toastQuestionsReady'));
 }
 
 // ---------- TEMPLATE LIBRARY DATA ----------
