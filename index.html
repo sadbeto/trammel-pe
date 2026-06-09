@@ -561,6 +561,146 @@ body.light .mobile-tabs { background: var(--surface); }
   box-shadow: 0 6px 20px rgba(0,0,0,0.35);
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ===== V2: Quick Builder ===== */
+.mode-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.mode-switch .btn {
+  justify-content: center;
+  font-weight: 700;
+  padding: 10px 12px;
+}
+.mode-switch .active {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none;
+  color: #fff;
+  box-shadow: var(--glow);
+}
+.quick-hero {
+  background: radial-gradient(circle at top left, rgba(56,189,248,0.16), transparent 35%), var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 14px;
+}
+.quick-kicker {
+  color: var(--accent3);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 4px;
+}
+.quick-title {
+  font-size: 1.35rem;
+  line-height: 1.2;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+.quick-subtitle {
+  color: var(--text2);
+  font-size: 0.88rem;
+  margin-bottom: 14px;
+}
+#quickPrompt {
+  min-height: 150px;
+  font-size: 1rem;
+  padding: 14px;
+  border-width: 2px;
+}
+.quick-toolbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.quick-row-title {
+  margin: 14px 0 8px;
+  font-size: 0.78rem;
+  color: var(--accent);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.usecase-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+  gap: 8px;
+}
+.usecase-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.usecase-card:hover, .usecase-card.selected {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: var(--glow);
+}
+.usecase-card.selected { background: rgba(56,189,248,0.1); }
+.usecase-emoji { font-size: 1.25rem; margin-bottom: 4px; }
+.usecase-name { font-size: 0.88rem; font-weight: 700; }
+.usecase-desc { color: var(--text2); font-size: 0.74rem; margin-top: 2px; line-height: 1.35; }
+.chip-row {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.quick-chip {
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 7px 11px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.quick-chip:hover, .quick-chip.selected {
+  border-color: var(--accent3);
+  color: var(--accent3);
+  background: rgba(52,211,153,0.08);
+}
+.quick-actions {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 8px;
+  margin-top: 14px;
+}
+.quick-actions .btn { justify-content: center; }
+.question-panel {
+  display: none;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 12px;
+}
+.question-panel.open { display: block; }
+.question-panel label {
+  color: var(--text);
+  font-size: 0.78rem;
+  margin-top: 8px;
+}
+.question-panel input {
+  margin-top: 4px;
+}
+.advanced-note {
+  color: var(--text2);
+  font-size: 0.8rem;
+  margin: -4px 0 12px;
+}
+@media (max-width: 820px) {
+  .quick-actions { grid-template-columns: 1fr; }
+  .usecase-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+}
 </style>
 </head>
 <body>
@@ -633,6 +773,83 @@ body.light .mobile-tabs { background: var(--surface); }
 <div class="container">
 <!-- ==================== FORM PANEL ==================== -->
 <div class="form-panel" id="formPanel">
+
+  <!-- V2: QUICK BUILDER DEFAULT -->
+  <div class="mode-switch" role="tablist" aria-label="Builder mode">
+    <button class="btn active" id="quickModeBtn" onclick="setBuilderMode('quick')" data-i18n="quickModeBtn">⚡ Quick Builder</button>
+    <button class="btn" id="advancedModeBtn" onclick="setBuilderMode('advanced')" data-i18n="advancedModeBtn">🛠️ Advanced Builder</button>
+  </div>
+
+  <div id="quickBuilder">
+    <div class="quick-hero">
+      <div class="quick-kicker" data-i18n="quickKicker">Quick start</div>
+      <div class="quick-title" data-i18n="quickTitle">Describe it once. Get a structured prompt.</div>
+      <p class="quick-subtitle" data-i18n="quickSubtitle">Type a rough idea, tap a few options, and Trammel writes the full prompt for you.</p>
+      <textarea id="quickPrompt" data-ph="quickPromptPh" placeholder="e.g. I need to analyze my competitors and make a plan" oninput="quickAutoGenerate(false)"></textarea>
+      <div class="quick-toolbar">
+        <button class="btn btn-primary" onclick="generateQuickPrompt()" data-i18n="quickGenerate">⚡ Build my prompt</button>
+        <button class="btn" onclick="askSmartQuestions()" data-i18n="quickQuestions">❓ Ask me 3 questions</button>
+        <button class="btn" onclick="clearQuick()" data-i18n="quickClear">Clear</button>
+      </div>
+    </div>
+
+    <div class="quick-row-title" data-i18n="quickUsecaseTitle">Pick the job</div>
+    <div class="usecase-grid" id="quickUsecases">
+      <div class="usecase-card selected" data-usecase="general" onclick="selectUseCase(this, 'general')"><div class="usecase-emoji">✨</div><div class="usecase-name" data-i18n="ucGeneral">General</div><div class="usecase-desc" data-i18n="ucGeneralDesc">Any task</div></div>
+      <div class="usecase-card" data-usecase="email" onclick="selectUseCase(this, 'email')"><div class="usecase-emoji">✉️</div><div class="usecase-name" data-i18n="ucEmail">Email</div><div class="usecase-desc" data-i18n="ucEmailDesc">Clear message</div></div>
+      <div class="usecase-card" data-usecase="summary" onclick="selectUseCase(this, 'summary')"><div class="usecase-emoji">📝</div><div class="usecase-name" data-i18n="ucSummary">Summary</div><div class="usecase-desc" data-i18n="ucSummaryDesc">Key points</div></div>
+      <div class="usecase-card" data-usecase="data" onclick="selectUseCase(this, 'data')"><div class="usecase-emoji">📊</div><div class="usecase-name" data-i18n="ucData">Analyze Data</div><div class="usecase-desc" data-i18n="ucDataDesc">Find what matters</div></div>
+      <div class="usecase-card" data-usecase="prd" onclick="selectUseCase(this, 'prd')"><div class="usecase-emoji">📐</div><div class="usecase-name" data-i18n="ucPrd">Build PRD</div><div class="usecase-desc" data-i18n="ucPrdDesc">Product plan</div></div>
+      <div class="usecase-card" data-usecase="code" onclick="selectUseCase(this, 'code')"><div class="usecase-emoji">💻</div><div class="usecase-name" data-i18n="ucCode">Code Review</div><div class="usecase-desc" data-i18n="ucCodeDesc">Bugs and fixes</div></div>
+      <div class="usecase-card" data-usecase="research" onclick="selectUseCase(this, 'research')"><div class="usecase-emoji">🔎</div><div class="usecase-name" data-i18n="ucResearch">Research</div><div class="usecase-desc" data-i18n="ucResearchDesc">Sources and synthesis</div></div>
+      <div class="usecase-card" data-usecase="agent" onclick="selectUseCase(this, 'agent')"><div class="usecase-emoji">🤖</div><div class="usecase-name" data-i18n="ucAgent">Agent Workflow</div><div class="usecase-desc" data-i18n="ucAgentDesc">Tools and steps</div></div>
+    </div>
+
+    <div class="quick-row-title" data-i18n="quickToneTitle">Tune it with clicks</div>
+    <div class="chip-row" data-chip-group="tone">
+      <button class="quick-chip selected" data-value="professional" onclick="selectQuickChip(this, 'tone')" data-i18n="chipProfessional">Professional</button>
+      <button class="quick-chip" data-value="concise" onclick="selectQuickChip(this, 'tone')" data-i18n="chipConcise">Concise</button>
+      <button class="quick-chip" data-value="executive" onclick="selectQuickChip(this, 'tone')" data-i18n="chipExecutive">Executive</button>
+      <button class="quick-chip" data-value="technical" onclick="selectQuickChip(this, 'tone')" data-i18n="chipTechnical">Technical</button>
+      <button class="quick-chip" data-value="conversational" onclick="selectQuickChip(this, 'tone')" data-i18n="chipFriendly">Friendly</button>
+    </div>
+
+    <div class="quick-row-title" data-i18n="quickDepthTitle">Depth</div>
+    <div class="chip-row" data-chip-group="depth">
+      <button class="quick-chip" data-value="quick" onclick="selectQuickChip(this, 'depth')" data-i18n="chipQuick">Quick</button>
+      <button class="quick-chip selected" data-value="standard" onclick="selectQuickChip(this, 'depth')" data-i18n="chipStandard">Standard</button>
+      <button class="quick-chip" data-value="deep" onclick="selectQuickChip(this, 'depth')" data-i18n="chipDeep">Deep</button>
+      <button class="quick-chip" data-value="expert" onclick="selectQuickChip(this, 'depth')" data-i18n="chipExpert">Expert</button>
+    </div>
+
+    <div class="quick-row-title" data-i18n="quickOutputTitle">Output</div>
+    <div class="chip-row" data-chip-group="format">
+      <button class="quick-chip selected" data-value="markdown" onclick="selectQuickChip(this, 'format')">Markdown</button>
+      <button class="quick-chip" data-value="table" onclick="selectQuickChip(this, 'format')" data-i18n="chipTable">Table</button>
+      <button class="quick-chip" data-value="bulletlist" onclick="selectQuickChip(this, 'format')" data-i18n="chipBullets">Bullets</button>
+      <button class="quick-chip" data-value="json" onclick="selectQuickChip(this, 'format')">JSON</button>
+      <button class="quick-chip" data-value="mixed" onclick="selectQuickChip(this, 'format')" data-i18n="chipMixed">Mixed</button>
+    </div>
+
+    <div class="quick-row-title" data-i18n="quickTargetTitle">Target AI</div>
+    <div class="chip-row" data-chip-group="target">
+      <button class="quick-chip selected" data-value="Any LLM" onclick="selectQuickChip(this, 'target')" data-i18n="chipAnyLLM">Any LLM</button>
+      <button class="quick-chip" data-value="ChatGPT" onclick="selectQuickChip(this, 'target')">ChatGPT</button>
+      <button class="quick-chip" data-value="Claude" onclick="selectQuickChip(this, 'target')">Claude</button>
+      <button class="quick-chip" data-value="Gemini" onclick="selectQuickChip(this, 'target')">Gemini</button>
+      <button class="quick-chip" data-value="AI agent" onclick="selectQuickChip(this, 'target')" data-i18n="chipAgentTarget">AI Agent</button>
+    </div>
+
+    <div class="question-panel" id="smartQuestions"></div>
+
+    <div class="quick-actions">
+      <button class="btn btn-primary" onclick="generateQuickPrompt()" data-i18n="quickGenerateBig">⚡ Generate structured prompt</button>
+      <button class="btn" onclick="setBuilderMode('advanced')" data-i18n="quickFineTune">Fine tune in Advanced</button>
+    </div>
+  </div>
+
+  <div id="advancedBuilder" style="display:none;">
+    <p class="advanced-note" data-i18n="advancedNote">Advanced mode keeps the full 9-step framework for precision work.</p>
 
   <!-- STEP 1: OBJECTIVE -->
   <div class="section" data-section="1">
@@ -835,6 +1052,8 @@ body.light .mobile-tabs { background: var(--surface); }
     <textarea id="improvementFocus" data-ph="s9FocusPh" placeholder="e.g. Accuracy of claims, completeness of coverage, specificity of recommendations, clarity of presentation" oninput="updatePreview()"></textarea>
     </div>
   </div>
+
+  </div><!-- /advancedBuilder -->
 
 </div>
 
@@ -1139,7 +1358,7 @@ const I18N = {
     tplSecurityAudit: "Security Audit", tplSecurityAuditDesc: "Audit an app for vulnerabilities and recommend fixes.",
     tplCompetitive: "Competitive Analysis", tplCompetitiveDesc: "Map competitors, positioning, and strategic gaps.",
     tplUse: "Use",
-    // UX improvement keys
+// UX improvement keys
     mobileTabForm: "📝 Form",
     mobileTabPreview: "👁️ Preview",
     autosaveLabel: "Auto-saved",
@@ -1159,6 +1378,26 @@ const I18N = {
     onboardStep4: "Copy the generated prompt → paste into any LLM",
     onboardStart: "🚀 Start Building",
     onboardTemplate: "📋 Use Template",
+
+// V2 Quick Builder keys
+    quickModeBtn: "⚡ Quick Builder", advancedModeBtn: "🛠️ Advanced Builder",
+    quickKicker: "Quick start", quickTitle: "Describe it once. Get a structured prompt.",
+    quickSubtitle: "Type a rough idea, tap a few options, and Trammel writes the full prompt for you.",
+    quickPromptPh: "e.g. I need to analyze my competitors and make a plan",
+    quickGenerate: "⚡ Build my prompt", quickQuestions: "❓ Ask me 3 questions", quickClear: "Clear",
+    quickUsecaseTitle: "Pick the job", quickToneTitle: "Tune it with clicks", quickDepthTitle: "Depth",
+    quickOutputTitle: "Output", quickTargetTitle: "Target AI", quickGenerateBig: "⚡ Generate structured prompt",
+    quickFineTune: "Fine tune in Advanced", advancedNote: "Advanced mode keeps the full 9-step framework for precision work.",
+    ucGeneral: "General", ucGeneralDesc: "Any task", ucEmail: "Email", ucEmailDesc: "Clear message",
+    ucSummary: "Summary", ucSummaryDesc: "Key points", ucData: "Analyze Data", ucDataDesc: "Find what matters",
+    ucPrd: "Build PRD", ucPrdDesc: "Product plan", ucCode: "Code Review", ucCodeDesc: "Bugs and fixes",
+    ucResearch: "Research", ucResearchDesc: "Sources and synthesis", ucAgent: "Agent Workflow", ucAgentDesc: "Tools and steps",
+    chipProfessional: "Professional", chipConcise: "Concise", chipExecutive: "Executive", chipTechnical: "Technical", chipFriendly: "Friendly",
+    chipQuick: "Quick", chipStandard: "Standard", chipDeep: "Deep", chipExpert: "Expert",
+    chipTable: "Table", chipBullets: "Bullets", chipMixed: "Mixed", chipAnyLLM: "Any LLM", chipAgentTarget: "AI Agent",
+    qTitle: "Answer any of these to make it sharper", qAudience: "Who is the audience?", qMustHave: "What must it include?", qAvoid: "What should it avoid?",
+    qContext: "Any context the AI should know?", qExamples: "Any example or style to follow?", qConstraints: "Any constraints or rules?",
+    toastQuickReady: "Prompt ready", toastQuestionsReady: "Questions ready",
   },
   es: {
     headerSub: "— Traza el arco de la idea a la ejecución",
@@ -1308,7 +1547,7 @@ const I18N = {
     tplSecurityAudit: "Auditoría de Seguridad", tplSecurityAuditDesc: "Audita una app por vulnerabilidades y recomienda arreglos.",
     tplCompetitive: "Análisis Competitivo", tplCompetitiveDesc: "Mapea competidores, posicionamiento y brechas estratégicas.",
     tplUse: "Usar",
-    // UX improvement keys
+// UX improvement keys
     mobileTabForm: "📝 Formulario",
     mobileTabPreview: "👁️ Vista Previa",
     autosaveLabel: "Auto-guardado",
@@ -1328,6 +1567,26 @@ const I18N = {
     onboardStep4: "Copia el prompt generado → pégalo en cualquier LLM",
     onboardStart: "🚀 Empezar",
     onboardTemplate: "📋 Usar Plantilla",
+
+// V2 Quick Builder keys
+    quickModeBtn: "⚡ Quick Builder", advancedModeBtn: "🛠️ Builder Avanzado",
+    quickKicker: "Inicio rápido", quickTitle: "Descríbelo una vez. Recibe un prompt estructurado.",
+    quickSubtitle: "Escribe una idea aproximada, marca unas opciones y Trammel redacta el prompt completo por ti.",
+    quickPromptPh: "ej. necesito analizar mis competidores y crear un plan",
+    quickGenerate: "⚡ Crea mi prompt", quickQuestions: "❓ Hazme 3 preguntas", quickClear: "Limpiar",
+    quickUsecaseTitle: "Escoge el trabajo", quickToneTitle: "Ajústalo con clicks", quickDepthTitle: "Profundidad",
+    quickOutputTitle: "Salida", quickTargetTitle: "AI destino", quickGenerateBig: "⚡ Generar prompt estructurado",
+    quickFineTune: "Ajustar en Avanzado", advancedNote: "El modo avanzado conserva el framework completo de 9 pasos para trabajos de precisión.",
+    ucGeneral: "General", ucGeneralDesc: "Cualquier tarea", ucEmail: "Email", ucEmailDesc: "Mensaje claro",
+    ucSummary: "Resumen", ucSummaryDesc: "Puntos clave", ucData: "Analizar Data", ucDataDesc: "Encontrar lo importante",
+    ucPrd: "Crear PRD", ucPrdDesc: "Plan de producto", ucCode: "Code Review", ucCodeDesc: "Bugs y fixes",
+    ucResearch: "Research", ucResearchDesc: "Fuentes y síntesis", ucAgent: "Workflow Agente", ucAgentDesc: "Tools y pasos",
+    chipProfessional: "Profesional", chipConcise: "Conciso", chipExecutive: "Ejecutivo", chipTechnical: "Técnico", chipFriendly: "Amigable",
+    chipQuick: "Rápido", chipStandard: "Normal", chipDeep: "Detallado", chipExpert: "Experto",
+    chipTable: "Tabla", chipBullets: "Bullets", chipMixed: "Mixto", chipAnyLLM: "Cualquier LLM", chipAgentTarget: "Agente AI",
+    qTitle: "Contesta cualquiera para afinarlo", qAudience: "¿Quién es la audiencia?", qMustHave: "¿Qué debe incluir sí o sí?", qAvoid: "¿Qué debe evitar?",
+    qContext: "¿Qué contexto debe saber la AI?", qExamples: "¿Algún ejemplo o estilo a seguir?", qConstraints: "¿Restricciones o reglas?",
+    toastQuickReady: "Prompt listo", toastQuestionsReady: "Preguntas listas",
   },
   pt: {
     headerSub: "— Traça o arco da ideia à execução",
@@ -1477,7 +1736,7 @@ const I18N = {
     tplSecurityAudit: "Auditoria de Segurança", tplSecurityAuditDesc: "Audite um app por vulnerabilidades e recomende correções.",
     tplCompetitive: "Análise Competitiva", tplCompetitiveDesc: "Mapeie concorrentes, posicionamento e lacunas estratégicas.",
     tplUse: "Usar",
-    // UX improvement keys
+// UX improvement keys
     mobileTabForm: "📝 Formulário",
     mobileTabPreview: "👁️ Pré-visualização",
     autosaveLabel: "Auto-salvo",
@@ -1497,6 +1756,26 @@ const I18N = {
     onboardStep4: "Copie o prompt gerado → cole em qualquer LLM",
     onboardStart: "🚀 Começar",
     onboardTemplate: "📋 Usar Template",
+
+// V2 Quick Builder keys
+    quickModeBtn: "⚡ Quick Builder", advancedModeBtn: "🛠️ Builder Avançado",
+    quickKicker: "Início rápido", quickTitle: "Descreva uma vez. Receba um prompt estruturado.",
+    quickSubtitle: "Digite uma ideia aproximada, toque em algumas opções e o Trammel redige o prompt completo para você.",
+    quickPromptPh: "ex. preciso analisar meus concorrentes e criar um plano",
+    quickGenerate: "⚡ Criar meu prompt", quickQuestions: "❓ Faça 3 perguntas", quickClear: "Limpar",
+    quickUsecaseTitle: "Escolha o trabalho", quickToneTitle: "Ajuste com cliques", quickDepthTitle: "Profundidade",
+    quickOutputTitle: "Saída", quickTargetTitle: "AI destino", quickGenerateBig: "⚡ Gerar prompt estruturado",
+    quickFineTune: "Ajustar no Avançado", advancedNote: "O modo avançado mantém o framework completo de 9 passos para trabalhos de precisão.",
+    ucGeneral: "Geral", ucGeneralDesc: "Qualquer tarefa", ucEmail: "Email", ucEmailDesc: "Mensagem clara",
+    ucSummary: "Resumo", ucSummaryDesc: "Pontos-chave", ucData: "Analisar Dados", ucDataDesc: "Encontrar o importante",
+    ucPrd: "Criar PRD", ucPrdDesc: "Plano de produto", ucCode: "Code Review", ucCodeDesc: "Bugs e correções",
+    ucResearch: "Pesquisa", ucResearchDesc: "Fontes e síntese", ucAgent: "Workflow Agente", ucAgentDesc: "Tools e passos",
+    chipProfessional: "Profissional", chipConcise: "Conciso", chipExecutive: "Executivo", chipTechnical: "Técnico", chipFriendly: "Amigável",
+    chipQuick: "Rápido", chipStandard: "Normal", chipDeep: "Detalhado", chipExpert: "Especialista",
+    chipTable: "Tabela", chipBullets: "Bullets", chipMixed: "Misto", chipAnyLLM: "Qualquer LLM", chipAgentTarget: "Agente AI",
+    qTitle: "Responda qualquer uma para afinar", qAudience: "Quem é o público?", qMustHave: "O que deve incluir?", qAvoid: "O que deve evitar?",
+    qContext: "Que contexto a AI deve saber?", qExamples: "Algum exemplo ou estilo a seguir?", qConstraints: "Restrições ou regras?",
+    toastQuickReady: "Prompt pronto", toastQuestionsReady: "Perguntas prontas",
   }
 };
 
@@ -2265,6 +2544,214 @@ function useTemplate(key) {
   closeModal('modalTemplates');
   showToast(t('toastLoaded'));
 }
+
+// ============================================================
+// V2: QUICK BUILDER
+// ============================================================
+const QUICK_COMMON = {
+  mustDo: { en: 'Deliver the finished work itself, not advice about how to do it. If key details are missing, state brief assumptions and proceed.', es: 'Entrega el trabajo terminado, no consejos sobre c\u00f3mo hacerlo. Si faltan detalles clave, declara supuestos breves y contin\u00faa.', pt: 'Entregue o trabalho finalizado, n\u00e3o conselhos sobre como faz\u00ea-lo. Se faltarem detalhes importantes, declare suposi\u00e7\u00f5es breves e prossiga.' },
+  mustNot: { en: 'No filler, no generic advice, no long lists of clarifying questions before delivering.', es: 'Sin relleno, sin consejos gen\u00e9ricos, sin listas largas de preguntas antes de entregar.', pt: 'Sem enrola\u00e7\u00e3o, sem conselhos gen\u00e9ricos, sem longas listas de perguntas antes de entregar.' },
+  improve: { en: 'Clarity, specificity, and completeness of the deliverable', es: 'Claridad, especificidad y completitud del entregable', pt: 'Clareza, especificidade e completude da entrega' },
+  targetNote: { en: 'This prompt will be run on {target} \u2014 phrase the instructions to suit it.', es: 'Este prompt se usar\u00e1 en {target} \u2014 redacta las instrucciones acorde.', pt: 'Este prompt ser\u00e1 usado no {target} \u2014 escreva as instru\u00e7\u00f5es de acordo.' },
+};
+
+let quickUseCase = 'general';
+const quickState = { tone: 'professional', depth: 'standard', format: 'markdown', target: 'Any LLM' };
+let quickTimer = null;
+
+function setBuilderMode(mode) {
+  const quick = mode !== 'advanced';
+  document.getElementById('quickBuilder').style.display = quick ? 'block' : 'none';
+  document.getElementById('advancedBuilder').style.display = quick ? 'none' : 'block';
+  document.getElementById('quickModeBtn').classList.toggle('active', quick);
+  document.getElementById('advancedModeBtn').classList.toggle('active', !quick);
+}
+
+function selectUseCase(el, key) {
+  quickUseCase = key;
+  document.querySelectorAll('.usecase-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  quickAutoGenerate(false);
+}
+
+function selectQuickChip(el, field) {
+  quickState[field] = el.dataset.value;
+  document.querySelectorAll(`[data-chip-group="${field}"] .quick-chip`).forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  quickAutoGenerate(false);
+}
+
+function quickAutoGenerate(force) {
+  clearTimeout(quickTimer);
+  if (!force && !document.getElementById('objective').value && document.getElementById('quickPrompt').value.trim().length < 12) return;
+  quickTimer = setTimeout(() => generateQuickPrompt(false), force ? 0 : 450);
+}
+
+function clearQuick() {
+  document.getElementById('quickPrompt').value = '';
+  document.getElementById('smartQuestions').classList.remove('open');
+  document.getElementById('smartQuestions').innerHTML = '';
+  resetAllSilent();
+  updatePreview();
+}
+
+function getQuickAnswers() {
+  return Array.from(document.querySelectorAll('#smartQuestions input'))
+    .map(inp => ({ label: inp.dataset.label || '', value: inp.value.trim() }))
+    .filter(x => x.value);
+}
+
+const QUICK_RECIPES = {
+  general: {
+    domain: 'Operations & Automation', tools: [], output: 'mixed',
+    role: { en: 'a versatile senior expert who delivers complete, actionable results', es: 'un experto senior vers\u00e1til que entrega resultados completos y accionables', pt: 'um especialista s\u00eanior vers\u00e1til que entrega resultados completos e acion\u00e1veis' },
+    objPrefix: { en: 'Complete this task end to end:', es: 'Completa esta tarea de principio a fin:', pt: 'Complete esta tarefa de ponta a ponta:' },
+    success: { en: 'A complete, usable deliverable that resolves the request without needing a follow-up round.', es: 'Un entregable completo y usable que resuelve la petici\u00f3n sin necesitar otra ronda.', pt: 'Uma entrega completa e utiliz\u00e1vel que resolve o pedido sem precisar de outra rodada.' },
+    subtasks: [],
+  },
+  email: {
+    domain: 'Creative & Content', tools: [], output: 'markdown',
+    role: { en: 'a senior communications strategist who writes clear, persuasive emails', es: 'un estratega de comunicaciones senior que escribe emails claros y persuasivos', pt: 'um estrategista de comunica\u00e7\u00e3o s\u00eanior que escreve emails claros e persuasivos' },
+    objPrefix: { en: 'Write the complete, ready-to-send email for this situation:', es: 'Escribe el email completo y listo para enviar para esta situaci\u00f3n:', pt: 'Escreva o email completo e pronto para enviar para esta situa\u00e7\u00e3o:' },
+    success: { en: 'A finished email with 2-3 subject line options, the right tone for the audience, and one clear call to action.', es: 'Un email terminado con 2-3 opciones de asunto, el tono correcto para la audiencia y un solo call to action claro.', pt: 'Um email finalizado com 2-3 op\u00e7\u00f5es de assunto, o tom certo para o p\u00fablico e um \u00fanico call to action claro.' },
+    subtasks: [
+      { name: { en: 'Read the situation', es: 'Lee la situaci\u00f3n', pt: 'Leia a situa\u00e7\u00e3o' }, desc: { en: 'Identify the sender goal, the recipient, and what a good outcome looks like for this message.', es: 'Identifica el objetivo del remitente, el destinatario y qu\u00e9 ser\u00eda un buen resultado para este mensaje.', pt: 'Identifique o objetivo do remetente, o destinat\u00e1rio e o que seria um bom resultado para esta mensagem.' }, data: { en: 'Relationship, context, desired outcome', es: 'Relaci\u00f3n, contexto, resultado deseado', pt: 'Rela\u00e7\u00e3o, contexto, resultado desejado' } },
+      { name: { en: 'Write and tighten', es: 'Escribe y pule', pt: 'Escreva e refine' }, desc: { en: 'Draft the email, then cut it down: short paragraphs, no fluff, one clear ask.', es: 'Redacta el email y aprieta el texto: p\u00e1rrafos cortos, sin relleno, una sola petici\u00f3n clara.', pt: 'Redija o email e enxugue o texto: par\u00e1grafos curtos, sem enchimento, um \u00fanico pedido claro.' }, data: { en: 'Subject line options, final body', es: 'Opciones de asunto, cuerpo final', pt: 'Op\u00e7\u00f5es de assunto, corpo final' } },
+    ],
+  },
+  summary: {
+    domain: 'Research & Education', tools: ['document_processing'], output: 'bulletlist',
+    role: { en: 'an expert analyst who distills messy material into sharp key points', es: 'un analista experto que destila material desordenado en puntos clave precisos', pt: 'um analista especialista que destila material bagun\u00e7ado em pontos-chave precisos' },
+    objPrefix: { en: 'Summarize the following material into key points, decisions, and action items:', es: 'Resume el siguiente material en puntos clave, decisiones y action items:', pt: 'Resuma o material a seguir em pontos-chave, decis\u00f5es e itens de a\u00e7\u00e3o:' },
+    success: { en: 'A scannable summary: 5-10 key points, decisions made, open questions, and concrete next steps.', es: 'Un resumen escaneable: 5-10 puntos clave, decisiones tomadas, preguntas abiertas y pr\u00f3ximos pasos concretos.', pt: 'Um resumo escane\u00e1vel: 5-10 pontos-chave, decis\u00f5es tomadas, quest\u00f5es abertas e pr\u00f3ximos passos concretos.' },
+    subtasks: [],
+  },
+  data: {
+    domain: 'Data Science & Analytics', tools: ['data_analysis', 'code_execution'], output: 'mixed',
+    role: { en: 'a senior data analyst focused on practical business insights', es: 'un analista de datos senior enfocado en insights pr\u00e1cticos de negocio', pt: 'um analista de dados s\u00eanior focado em insights pr\u00e1ticos de neg\u00f3cio' },
+    objPrefix: { en: 'Analyze the data described below and surface what actually matters:', es: 'Analiza la data descrita abajo y saca lo que de verdad importa:', pt: 'Analise os dados descritos abaixo e destaque o que realmente importa:' },
+    success: { en: 'Top 3-5 findings with the numbers behind them, plus prioritized recommendations \u2014 not a wall of statistics.', es: 'Top 3-5 hallazgos con los n\u00fameros que los respaldan, m\u00e1s recomendaciones priorizadas \u2014 no una pared de estad\u00edsticas.', pt: 'Top 3-5 descobertas com os n\u00fameros por tr\u00e1s delas, mais recomenda\u00e7\u00f5es priorizadas \u2014 n\u00e3o uma parede de estat\u00edsticas.' },
+    subtasks: [
+      { name: { en: 'Profile the data', es: 'Perfila la data', pt: 'Perfile os dados' }, desc: { en: 'Understand structure, quality issues, and what each field represents before analyzing.', es: 'Entiende la estructura, problemas de calidad y qu\u00e9 representa cada campo antes de analizar.', pt: 'Entenda a estrutura, problemas de qualidade e o que cada campo representa antes de analisar.' }, data: { en: 'Schema, missing values, distributions', es: 'Esquema, valores faltantes, distribuciones', pt: 'Esquema, valores faltantes, distribui\u00e7\u00f5es' } },
+      { name: { en: 'Find what drives results', es: 'Encuentra qu\u00e9 mueve los resultados', pt: 'Encontre o que move os resultados' }, desc: { en: 'Identify the patterns, segments, or variables that explain the outcomes that matter.', es: 'Identifica los patrones, segmentos o variables que explican los resultados importantes.', pt: 'Identifique os padr\u00f5es, segmentos ou vari\u00e1veis que explicam os resultados importantes.' }, data: { en: 'Correlations, segment comparisons, trends', es: 'Correlaciones, comparaciones por segmento, tendencias', pt: 'Correla\u00e7\u00f5es, compara\u00e7\u00f5es por segmento, tend\u00eancias' } },
+    ],
+  },
+  prd: {
+    domain: 'Product Management', tools: [], output: 'mixed',
+    role: { en: 'a senior product manager who writes crisp PRDs with measurable success criteria', es: 'un product manager senior que escribe PRDs precisos con criterios de \u00e9xito medibles', pt: 'um product manager s\u00eanior que escreve PRDs precisos com crit\u00e9rios de sucesso mensur\u00e1veis' },
+    objPrefix: { en: 'Write a complete PRD for:', es: 'Escribe un PRD completo para:', pt: 'Escreva um PRD completo para:' },
+    success: { en: 'A PRD with problem statement, target users, prioritized requirements, an explicit out-of-scope list, and measurable success metrics.', es: 'Un PRD con planteamiento del problema, usuarios objetivo, requisitos priorizados, lista expl\u00edcita de fuera-de-alcance y m\u00e9tricas de \u00e9xito medibles.', pt: 'Um PRD com defini\u00e7\u00e3o do problema, usu\u00e1rios-alvo, requisitos priorizados, lista expl\u00edcita de fora-do-escopo e m\u00e9tricas de sucesso mensur\u00e1veis.' },
+    subtasks: [
+      { name: { en: 'Problem and users', es: 'Problema y usuarios', pt: 'Problema e usu\u00e1rios' }, desc: { en: 'Define the problem being solved, for whom, and why now.', es: 'Define el problema que se resuelve, para qui\u00e9n y por qu\u00e9 ahora.', pt: 'Defina o problema a resolver, para quem e por que agora.' }, data: { en: 'User segments, pain points, alternatives they use today', es: 'Segmentos de usuarios, dolores, alternativas que usan hoy', pt: 'Segmentos de usu\u00e1rios, dores, alternativas que usam hoje' } },
+      { name: { en: 'Requirements and scope', es: 'Requisitos y alcance', pt: 'Requisitos e escopo' }, desc: { en: 'List prioritized functional requirements and an explicit out-of-scope section.', es: 'Lista requisitos funcionales priorizados y una secci\u00f3n expl\u00edcita de fuera-de-alcance.', pt: 'Liste requisitos funcionais priorizados e uma se\u00e7\u00e3o expl\u00edcita de fora-do-escopo.' }, data: { en: 'Must-have vs nice-to-have, V1 cutline', es: 'Imprescindible vs deseable, l\u00ednea de corte del V1', pt: 'Essencial vs desej\u00e1vel, linha de corte do V1' } },
+      { name: { en: 'Metrics and risks', es: 'M\u00e9tricas y riesgos', pt: 'M\u00e9tricas e riscos' }, desc: { en: 'Define how success will be measured and the main risks with mitigations.', es: 'Define c\u00f3mo se medir\u00e1 el \u00e9xito y los riesgos principales con mitigaciones.', pt: 'Defina como o sucesso ser\u00e1 medido e os principais riscos com mitiga\u00e7\u00f5es.' }, data: { en: 'KPIs, adoption targets, top 3 risks', es: 'KPIs, metas de adopci\u00f3n, top 3 riesgos', pt: 'KPIs, metas de ado\u00e7\u00e3o, top 3 riscos' } },
+    ],
+  },
+  code: {
+    domain: 'Software Engineering', tools: ['code_execution', 'file_read_write'], output: 'mixed',
+    role: { en: 'a senior engineer doing a rigorous, constructive code review', es: 'un ingeniero senior haciendo un code review riguroso y constructivo', pt: 'um engenheiro s\u00eanior fazendo um code review rigoroso e construtivo' },
+    objPrefix: { en: 'Perform a rigorous code review of the following:', es: 'Haz un code review riguroso de lo siguiente:', pt: 'Fa\u00e7a um code review rigoroso do seguinte:' },
+    success: { en: 'Findings categorized by severity (blocker/major/minor) with file:line references and a concrete fix for each one.', es: 'Hallazgos categorizados por severidad (bloqueante/mayor/menor) con referencias archivo:l\u00ednea y un fix concreto para cada uno.', pt: 'Achados categorizados por severidade (bloqueador/maior/menor) com refer\u00eancias arquivo:linha e uma corre\u00e7\u00e3o concreta para cada um.' },
+    subtasks: [
+      { name: { en: 'Correctness and security', es: 'Correctitud y seguridad', pt: 'Corre\u00e7\u00e3o e seguran\u00e7a' }, desc: { en: 'Hunt for logic bugs, unsafe input handling, injection risks, and auth gaps.', es: 'Busca bugs de l\u00f3gica, manejo inseguro de input, riesgos de inyecci\u00f3n y fallos de auth.', pt: 'Cace bugs de l\u00f3gica, tratamento inseguro de input, riscos de inje\u00e7\u00e3o e falhas de auth.' }, data: { en: 'Data flow, trust boundaries, error paths', es: 'Flujo de datos, l\u00edmites de confianza, rutas de error', pt: 'Fluxo de dados, limites de confian\u00e7a, caminhos de erro' } },
+      { name: { en: 'Maintainability', es: 'Mantenibilidad', pt: 'Manutenibilidade' }, desc: { en: 'Assess naming, structure, duplication, and test coverage. Separate blockers from nitpicks.', es: 'Eval\u00faa nombres, estructura, duplicaci\u00f3n y cobertura de tests. Separa bloqueantes de detalles.', pt: 'Avalie nomes, estrutura, duplica\u00e7\u00e3o e cobertura de testes. Separe bloqueadores de detalhes.' }, data: { en: 'Complexity hotspots, missing tests', es: 'Puntos de complejidad, tests faltantes', pt: 'Pontos de complexidade, testes faltantes' } },
+    ],
+  },
+  research: {
+    domain: 'Research & Education', tools: ['web_search'], output: 'markdown',
+    role: { en: 'a research analyst who verifies sources and synthesizes findings clearly', es: 'un analista de investigaci\u00f3n que verifica fuentes y sintetiza hallazgos con claridad', pt: 'um analista de pesquisa que verifica fontes e sintetiza descobertas com clareza' },
+    objPrefix: { en: 'Research the following and synthesize verified findings:', es: 'Investiga lo siguiente y sintetiza hallazgos verificados:', pt: 'Pesquise o seguinte e sintetize descobertas verificadas:' },
+    success: { en: 'A synthesis backed by cited sources, separating confirmed facts from speculation, ending with practical takeaways.', es: 'Una s\u00edntesis respaldada por fuentes citadas, separando hechos confirmados de especulaci\u00f3n, cerrando con conclusiones pr\u00e1cticas.', pt: 'Uma s\u00edntese apoiada em fontes citadas, separando fatos confirmados de especula\u00e7\u00e3o, terminando com conclus\u00f5es pr\u00e1ticas.' },
+    subtasks: [
+      { name: { en: 'Gather sources', es: 'Re\u00fane fuentes', pt: 'Re\u00fana fontes' }, desc: { en: 'Find multiple independent, recent sources and note publication dates.', es: 'Encuentra varias fuentes independientes y recientes, anotando fechas de publicaci\u00f3n.', pt: 'Encontre v\u00e1rias fontes independentes e recentes, anotando datas de publica\u00e7\u00e3o.' }, data: { en: 'Primary sources over summaries, 3+ sources per claim', es: 'Fuentes primarias sobre res\u00famenes, 3+ fuentes por afirmaci\u00f3n', pt: 'Fontes prim\u00e1rias sobre resumos, 3+ fontes por afirma\u00e7\u00e3o' } },
+      { name: { en: 'Synthesize', es: 'Sintetiza', pt: 'Sintetize' }, desc: { en: 'Combine findings into a coherent answer, flagging conflicts between sources.', es: 'Combina hallazgos en una respuesta coherente, marcando conflictos entre fuentes.', pt: 'Combine descobertas em uma resposta coerente, sinalizando conflitos entre fontes.' }, data: { en: 'Agreements, contradictions, confidence levels', es: 'Acuerdos, contradicciones, niveles de confianza', pt: 'Acordos, contradi\u00e7\u00f5es, n\u00edveis de confian\u00e7a' } },
+    ],
+  },
+  agent: {
+    domain: 'Operations & Automation', tools: ['web_search', 'api_calls', 'file_read_write'], output: 'mixed',
+    role: { en: 'an AI agent that executes multi-step workflows with tools and verifies its own results', es: 'un agente AI que ejecuta workflows multi-paso con herramientas y verifica sus propios resultados', pt: 'um agente AI que executa workflows multi-etapas com ferramentas e verifica seus pr\u00f3prios resultados' },
+    objPrefix: { en: 'Execute the following as a multi-step workflow, using your tools:', es: 'Ejecuta lo siguiente como un workflow multi-paso, usando tus herramientas:', pt: 'Execute o seguinte como um workflow multi-etapas, usando suas ferramentas:' },
+    success: { en: 'Every step completed with the right tool, intermediate results shown, and a final deliverable verified against the goal.', es: 'Cada paso completado con la herramienta correcta, resultados intermedios visibles y un entregable final verificado contra el objetivo.', pt: 'Cada etapa conclu\u00edda com a ferramenta certa, resultados intermedi\u00e1rios vis\u00edveis e uma entrega final verificada contra o objetivo.' },
+    subtasks: [
+      { name: { en: 'Map steps and tools', es: 'Mapea pasos y herramientas', pt: 'Mapeie etapas e ferramentas' }, desc: { en: 'Break the goal into ordered steps and assign the right tool to each.', es: 'Divide el objetivo en pasos ordenados y asigna la herramienta correcta a cada uno.', pt: 'Divida o objetivo em etapas ordenadas e atribua a ferramenta certa a cada uma.' }, data: { en: 'Dependencies between steps, tool inputs and outputs', es: 'Dependencias entre pasos, inputs y outputs de herramientas', pt: 'Depend\u00eancias entre etapas, inputs e outputs de ferramentas' } },
+      { name: { en: 'Execute and verify', es: 'Ejecuta y verifica', pt: 'Execute e verifique' }, desc: { en: 'Run each step, check its output before moving on, and verify the final result against the original goal.', es: 'Corre cada paso, chequea su output antes de seguir y verifica el resultado final contra el objetivo original.', pt: 'Execute cada etapa, confira o output antes de seguir e verifique o resultado final contra o objetivo original.' }, data: { en: 'Per-step checks, final acceptance criteria', es: 'Chequeos por paso, criterios de aceptaci\u00f3n finales', pt: 'Verifica\u00e7\u00f5es por etapa, crit\u00e9rios de aceita\u00e7\u00e3o finais' } },
+    ],
+  },
+};
+
+function quickDataToAdvanced() {
+  const rough = document.getElementById('quickPrompt').value.trim();
+  if (!rough) return null;
+  const r = QUICK_RECIPES[quickUseCase] || QUICK_RECIPES.general;
+  const L = currentLang;
+  const answers = getQuickAnswers();
+  const target = quickState.target || 'Any LLM';
+  const find = key => answers.find(a => a.label === t(key))?.value || '';
+  return {
+    objective: `${val(r.objPrefix, L)}\n${rough}`,
+    domain: r.domain,
+    successCriteria: val(r.success, L),
+    inScope: '',
+    outScope: '',
+    depth: quickState.depth,
+    selfLearn: quickState.depth === 'deep' || quickState.depth === 'expert',
+    iterationStrategy: 'validate',
+    maxIterations: quickState.depth === 'expert' ? '3' : '2',
+    improvementFocus: val(QUICK_COMMON.improve, L),
+    tools: r.tools || [],
+    subtasks: (r.subtasks || []).map(st => ({ name: val(st.name, L), desc: val(st.desc, L), data: val(st.data, L) })),
+    role: val(r.role, L),
+    tone: quickState.tone,
+    format: quickState.format || r.output || 'markdown',
+    lengthTarget: quickState.depth === 'quick' ? 'brief' : quickState.depth === 'expert' ? 'comprehensive' : 'moderate',
+    customFormat: target !== 'Any LLM' ? val(QUICK_COMMON.targetNote, L).replace('{target}', target) : '',
+    background: find('qContext'),
+    inputData: '',
+    audience: find('qAudience'),
+    constraints: find('qAvoid') || val(QUICK_COMMON.mustNot, L),
+    mustDo: find('qMustHave') || val(QUICK_COMMON.mustDo, L),
+    edgeCases: find('qConstraints'),
+  };
+}
+
+function generateQuickPrompt(showMsg = true) {
+  const quickValue = document.getElementById('quickPrompt').value;
+  const answerValues = Array.from(document.querySelectorAll('#smartQuestions input')).map(inp => inp.value);
+  const d = quickDataToAdvanced();
+  if (!d) { showToast(t('toastNoObj')); return; }
+  applyData(d);
+  document.getElementById('quickPrompt').value = quickValue;
+  Array.from(document.querySelectorAll('#smartQuestions input')).forEach((inp, i) => { inp.value = answerValues[i] || ''; });
+  setBuilderMode('quick');
+  if (showMsg) showToast(t('toastQuickReady'));
+}
+
+function askSmartQuestions() {
+  const qs = quickUseCase === 'email'
+    ? [t('qAudience'), t('qMustHave'), t('qAvoid')]
+    : quickUseCase === 'data'
+      ? [t('qContext'), t('qMustHave'), t('qConstraints')]
+      : quickUseCase === 'code'
+        ? [t('qContext'), t('qMustHave'), t('qAvoid')]
+        : [t('qAudience'), t('qMustHave'), t('qAvoid')];
+  const panel = document.getElementById('smartQuestions');
+  panel.innerHTML = `<div class="quick-row-title" style="margin-top:0;">${t('qTitle')}</div>` + qs.map(q =>
+    `<label>${q}</label><input type="text" data-label="${escapeHtml(q)}" oninput="quickAutoGenerate(false)" placeholder="${escapeHtml(q)}">`
+  ).join('');
+  panel.classList.add('open');
+  showToast(t('toastQuestionsReady'));
+}
+
+// Regenerate Quick Builder output when the language changes, so generated content follows the selected language
+const _changeLangCore = changeLang;
+changeLang = function(lang) {
+  _changeLangCore(lang);
+  const idea = document.getElementById('quickPrompt');
+  const qb = document.getElementById('quickBuilder');
+  if (idea && qb && idea.value.trim() && getComputedStyle(qb).display !== 'none' && document.getElementById('objective').value) {
+    generateQuickPrompt(false);
+  }
+};
 
 // ---------- TEMPLATE LIBRARY DATA ----------
 const TEMPLATES = {
