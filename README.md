@@ -55,7 +55,10 @@ Unlike simple "prompt templates," Trammel PE forces you to think through:
 - **📊 Quality Scoring** — Live completeness, specificity, and token count as you fill in fields
 - **🌐 Multi-Language** — Full interface + generated prompts in English, Español, and Português
 - **🔒 100% Local** — Zero servers, zero tracking, zero dependencies. Open the HTML file and go.
-- **📋 Built-in Templates** — Competitive Analysis template included
+- **📋 Built-in Templates** — 6 templates: Competitive Analysis, Data Analysis, Content Writing, API Design, Code Review, Security Audit
+- **📚 Prompt Library** — Save prompts to `localStorage`, keep multiple versions per prompt, reload any version
+- **⬇️ Export / Import** — Download as `.md` / `.json` / `.txt`, or paste JSON to import back into the form (round-trip)
+- **🌗 Theme Toggle** — Switch dark/light, preference persists across sessions
 
 ## Multi-Language
 
@@ -200,13 +203,13 @@ All PRs require Maintainer approval before merge. No direct pushes to `main`.
 
 - [ ] More languages (FR, DE, JA, ZH, AR)
 - [ ] MCP server for agent integration
-- [ ] Prompt versioning & history (localStorage)
-- [ ] Export to file (.md, .json)
+- [x] Prompt versioning & history (localStorage)
+- [x] Export to file (.md, .json)
 - [ ] Prompt chaining (link multiple prompts)
-- [ ] Dark/light theme toggle
+- [x] Dark/light theme toggle
 - [ ] Customizable UI layouts
 - [ ] Mobile-responsive improvements
-- [ ] More built-in templates
+- [x] More built-in templates
 - [ ] Quality scoring algorithm improvements
 - [ ] Integration guides for OpenClaw, AutoGPT, CrewAI
 - [ ] Contributor evaluation system (professional background review)
