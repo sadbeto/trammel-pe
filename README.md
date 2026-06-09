@@ -48,6 +48,9 @@ Unlike simple "prompt templates," Trammel PE forces you to think through:
 
 ### Key Capabilities
 
+- **⚡ Quick Builder Mode** — Default workflow: describe the task once, tap use-case cards and chips, get a complete structured prompt
+- **❓ Smart Questions** — Optional 3-question helper that improves the prompt without forcing a long form
+- **🛠️ Advanced Builder** — Full 9-section framework remains available for precision prompting
 - **🛠️ Tool Selection** — Explicitly tell the agent which tools to use (web search, code, APIs, databases, etc.)
 - **🧩 Task Decomposition** — Break complex objectives into sub-tasks with concentrated data focus per task
 - **🔄 Self-Learning Loop** — Agent iterates on its own output: reflect, validate, research gaps
@@ -146,6 +149,18 @@ start index.html      # Windows
 ```
 
 ## How to Use
+
+### Quick Builder (default)
+
+1. **Describe the task** — one or two sentences is enough
+2. **Pick the job** — Email, Summary, Data, PRD, Code Review, Research, Agent Workflow, etc.
+3. **Tune with chips** — tone, depth, output format, target AI
+4. **Generate** — Trammel builds the structured prompt for you
+5. **Optional:** click **Ask me 3 questions** to sharpen the prompt without filling a long form
+
+### Advanced Builder
+
+Use **Advanced Builder** when you need precise control over the full framework:
 
 1. **Define your Objective** — Start with a verb, be specific
 2. **Set Scope** — What's IN, what's OUT, how deep
