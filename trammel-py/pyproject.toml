@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "trammel-pe"
+version = "0.1.0"
+description = "Generate structured, tool-aware, self-improving prompts for any LLM agent"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+authors = [
+    {name = "JJ Solutions", email = "dev@jjsolutions.dev"},
+]
+keywords = ["prompt-engineering", "llm", "ai-agent", "prompt-generator", "trammel"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[project.scripts]
+trammel-pe = "trammel_pe.cli:main"
+
+[project.urls]
+Homepage = "https://codeberg.org/JJSolutions/trammel-pe"
+Repository = "https://codeberg.org/JJSolutions/trammel-pe"
