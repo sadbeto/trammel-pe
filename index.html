@@ -2177,8 +2177,8 @@ function resetAllSilent() {
       quickState.tone = 'professional'; quickState.depth = 'standard';
       quickState.format = 'markdown'; quickState.target = 'Any LLM';
     }
-    document.querySelectorAll('#quickBuilderSection .chip').forEach(c => c.classList.remove('selected'));
-    document.querySelectorAll('.use-case-card').forEach(c => c.classList.remove('selected'));
+    document.querySelectorAll('.quick-chip').forEach(c => c.classList.remove('selected'));
+    document.querySelectorAll('.usecase-card').forEach(c => c.classList.remove('selected'));
   }
   updatePreview();
 
