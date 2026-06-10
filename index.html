@@ -701,6 +701,8 @@ body.light .mobile-tabs { background: var(--surface); }
   .quick-actions { grid-template-columns: 1fr; }
   .usecase-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
 }
+
+.placeholder-var{background:rgba(129,140,248,0.25);border:1px dashed var(--accent2);border-radius:3px;padding:1px 4px;font-family:monospace;font-size:0.85em;}
 </style>
 </head>
 <body>
@@ -1783,17 +1785,19 @@ const I18N = {
 // STATE & LOGIC
 // ============================================================
 let selectedTools = new Set();
-let subtaskCounter = 1;
+// subtaskCounter removed - dynamic counting via querySelectorAll
 let currentLang = 'en';
 
 function t(key) {
-  return I18N[currentLang][key] || I18N['en'][key] || key;
+  return I18N[currentLang]?.[key] || I18N['en']?.[key] || key;
 }
 
+const _langChangeHooks = [];
 function changeLang(lang) {
   currentLang = lang;
   applyLang();
   updatePreview();
+  _langChangeHooks.forEach(fn => fn(lang));
 }
 
 function applyLang() {
@@ -1801,7 +1805,7 @@ function applyLang() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
     const val = t(key);
-    if (el.tagName === 'OPTION' || el.tagName === 'INPUT' && el.type !== 'text') {
+    if ((el.tagName === 'OPTION' || el.tagName === 'INPUT') && el.type !== 'text') {
       el.textContent = val;
     } else if (el.tagName === 'INPUT' && el.type === 'text') {
       // don't change value, only placeholder handled separately
@@ -1846,8 +1850,7 @@ function toggleTool(el) {
 
 // ============ SUBTASKS ============
 function addSubtask() {
-  subtaskCounter++;
-  const num = subtaskCounter;
+  const num = document.querySelectorAll('.subtask-card').length + 1;
   const card = document.createElement('div');
   card.className = 'subtask-card';
   card.id = `subtask-${num}`;
@@ -1947,10 +1950,7 @@ function iterLabel(v) {
   return m[v] || v;
 }
 function lengthLabel(v) {
-  const m = { brief: currentLang==='es'?'Breve (<500 palabras)':currentLang==='pt'?'Breve (<500 palavras)':'Brief (<500 words)',
-    moderate: currentLang==='es'?'Moderado (500-1500 palabras)':currentLang==='pt'?'Moderado (500-1500 palavras)':'Moderate (500-1500 words)',
-    comprehensive: currentLang==='es'?'Comprensivo (1500-3000 palabras)':currentLang==='pt'?'Abrangente (1500-3000 palavras)':'Comprehensive (1500-3000 words)',
-    unlimited: currentLang==='es'?'Sin límite':currentLang==='pt'?'Sem limite':'No length limit' };
+  const m = { brief: t('lenBrief'), moderate: t('lenModerate'), comprehensive: t('lenComprehensive'), unlimited: t('lenUnlimited') };
   return m[v] || v;
 }
 
@@ -2055,6 +2055,17 @@ function buildJSON(d) {
 }
 
 // ============ QUALITY ============
+function estimateTokens(text) {
+  if (!text) return 0;
+  let tokens = 0;
+  for (let i = 0; i < text.length; i++) {
+    const code = text.charCodeAt(i);
+    if (code >= 0x4E00) tokens += 1.5;
+    else if ((code >= 65 && code <= 90) || (code >= 97 && code <= 122) || (code >= 48 && code <= 57)) tokens += 0.25;
+    else tokens += 0.2;
+  }
+  return Math.round(Math.max(tokens, text.length / 4));
+}
 function computeQuality(d) {
   const fields = [d.objective, d.successCriteria, d.inScope, d.outScope, d.role, d.background, d.constraints, d.mustDo];
   const filled = fields.filter(f => f && f.trim().length > 10).length;
@@ -2063,7 +2074,7 @@ function computeQuality(d) {
   const specFilled = specFields.filter(f => f && f.trim().length > 20).length;
   const specificity = Math.round((specFilled / specFields.length) * 100);
   const prompt = buildPrompt(d);
-  const tokens = Math.round((prompt ? prompt.length : 0) / 4);
+  const tokens = estimateTokens(prompt || '');
   return { completeness, specificity, tokens };
 }
 
@@ -2090,7 +2101,8 @@ function updatePreview() {
     updateQualityBar({ completeness: 0, specificity: 0, tokens: 0 });
     return;
   }
-  const formatted = prompt
+  const safePrompt = escapeHtml(prompt);
+  const formatted = safePrompt
     .replace(/^# (.+)$/gm, '<span style="color:var(--accent);font-weight:700;font-size:1rem;">$1</span>')
     .replace(/^## (.+)$/gm, '<span style="color:var(--accent2);font-weight:600;font-size:0.9rem;">$1</span>')
     .replace(/^- (.+)$/gm, '<span style="color:var(--accent3);">•</span> $1');
@@ -2120,16 +2132,16 @@ function copyPrompt() {
   } else {
     content = prompt;
   }
-  navigator.clipboard.writeText(content).then(() => {
-    const btn = document.querySelector('.btn-primary');
-    const orig = btn.innerHTML;
-    btn.innerHTML = t('tplCopied');
-    setTimeout(() => { btn.innerHTML = orig; }, 2000);
-  }).catch(() => {
-    const ta = document.createElement('textarea');
-    ta.value = content; document.body.appendChild(ta); ta.select();
-    document.execCommand('copy'); document.body.removeChild(ta);
-  });
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(content).then(() => {
+      const btn = document.querySelector('.btn-primary');
+      const orig = btn.innerHTML;
+      btn.innerHTML = t('tplCopied');
+      setTimeout(() => { btn.innerHTML = orig; }, 2000);
+    }).catch(() => showToast(t('copyFailed')));
+  } else {
+    showToast(t('copyFailed'));
+  }
 }
 
 // ============ RESET ============
@@ -2159,7 +2171,16 @@ function resetAllSilent() {
       <label style="margin-top:6px;margin-bottom:2px;">${t('s4DataLabel')}</label>
       <input type="text" class="subtask-data" data-ph="s4DataPh" placeholder="${t('s4DataPh')}" oninput="updatePreview()">
     </div>`;
-}
+  if (typeof quickUseCase !== 'undefined') {
+    quickUseCase = 'general';
+    if (typeof quickState !== 'undefined') {
+      quickState.tone = 'professional'; quickState.depth = 'standard';
+      quickState.format = 'markdown'; quickState.target = 'Any LLM';
+    }
+    document.querySelectorAll('#quickBuilderSection .chip').forEach(c => c.classList.remove('selected'));
+    document.querySelectorAll('.use-case-card').forEach(c => c.classList.remove('selected'));
+  }
+  updatePreview();
 
 // ============ LOAD TEMPLATE ============
 function loadTemplate() {
@@ -2229,12 +2250,10 @@ function loadTemplate() {
     const chip = document.querySelector(`[data-tool="${tool}"]`);
     if (chip) { selectedTools.add(tool); chip.classList.add('selected'); }
   });
-  subtaskCounter = 0;
   const list = document.getElementById('subtaskList');
   list.innerHTML = '';
-  t2.subtasks.forEach((st) => {
-    subtaskCounter++;
-    const num = subtaskCounter;
+  t2.subtasks.forEach((st, idx) => {
+    const num = idx + 1;
     const card = document.createElement('div');
     card.className = 'subtask-card'; card.id = `subtask-${num}`;
     card.innerHTML = `
@@ -2489,11 +2508,9 @@ function applyData(d) {
   // subtasks
   const list = document.getElementById('subtaskList');
   list.innerHTML = '';
-  subtaskCounter = 0;
   const subs = (d.subtasks && d.subtasks.length) ? d.subtasks : [{ name: '', desc: '', data: '' }];
-  subs.forEach(st => {
-    subtaskCounter++;
-    const num = subtaskCounter;
+  subs.forEach((st, idx) => {
+    const num = idx + 1;
     const card = document.createElement('div');
     card.className = 'subtask-card'; card.id = `subtask-${num}`;
     card.innerHTML = `
@@ -2743,8 +2760,7 @@ function askSmartQuestions() {
 }
 
 // Regenerate Quick Builder output when the language changes, so generated content follows the selected language
-const _changeLangCore = changeLang;
-changeLang = function(lang) {
+_langChangeHooks.push(() => {
   _changeLangCore(lang);
   const idea = document.getElementById('quickPrompt');
   const qb = document.getElementById('quickBuilder');
@@ -3165,6 +3181,104 @@ updatePreview = function() {
 
 // Show onboarding for first-time visitors
 showOnboarding();
+
+
+// ═══════════════════════════════════════════════════
+//  BOOST Tier 2 — session 2026-06-09
+// ═══════════════════════════════════════════════════
+
+// Placeholder {{var}} detection & styling
+const PLACEHOLDER_RE = /\{\{([^}]+)\}\}/g;
+function extractPlaceholders(text) {
+  if (!text) return [];
+  return [...new Set([...text.matchAll(PLACEHOLDER_RE)].map(m => m[1].trim()))];
+}
+function collectAllPlaceholders() {
+  const fields = ['objective','domainCustom','role','successCriteria','inScope','outScope','constraints','mustDo','edgeCases','background','inputData','audience','customFormat','improvementFocus'];
+  const all = new Set();
+  fields.forEach(id => { const el = document.getElementById(id); if (el&&el.value) extractPlaceholders(el.value).forEach(v => all.add(v)); });
+  document.querySelectorAll('.subtask-name,.subtask-desc,.subtask-data').forEach(el => { if(el.value) extractPlaceholders(el.value).forEach(v => all.add(v)); });
+  return [...all];
+}
+function updateVarsBadge() {
+  const vars = collectAllPlaceholders();
+  const badge = document.getElementById('varsBadge');
+  const count = document.getElementById('varsCount');
+  if (!badge || !count) return;
+  if (vars.length > 0) { badge.style.display = 'inline-flex'; count.textContent = vars.length; badge.title = vars.join(', '); }
+  else { badge.style.display = 'none'; }
+}
+
+// URL Share (encode prompt data in URL hash)
+function shareViaURL() {
+  const d = gatherData();
+  if (!d.objective) { showToast(t('tplNoObj')); return; }
+  const compressed = btoa(encodeURIComponent(JSON.stringify(d)));
+  const url = location.origin + location.pathname + '#data=' + compressed;
+  navigator.clipboard.writeText(url).then(() => showToast('\u{1F517} URL copied!')).catch(() => showToast(t('copyFailed')));
+}
+function loadFromURL() {
+  const h = location.hash;
+  if (!h.startsWith('#data=')) return false;
+  try {
+    const o = JSON.parse(decodeURIComponent(atob(h.substring(6))));
+    applyData(o);
+    updatePreview();
+    showToast('\u{1F4E5} Prompt loaded from URL');
+    history.replaceState(null, '', location.pathname);
+    return true;
+  } catch(e) { return false; }
+}
+
+// Export PDF via print dialog
+function exportPDF() {
+  const d = gatherData();
+  if (!d.objective) { showToast(t('tplNoObj')); return; }
+  const prompt = buildPrompt(d);
+  const w = window.open('', '_blank', 'width=800,height=600');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Trammel PE</title><style>body{font-family:system-ui;max-width:800px;margin:40px auto;padding:20px;color:#111;line-height:1.7;}</style></head><body><h1>Trammel PE \u2014 Prompt Export</h1><p><small>'+new Date().toISOString()+'</small></p><hr><pre style="white-space:pre-wrap;font-family:inherit;">'+escapeHtml(prompt)+'</pre></body></html>');
+  w.document.close();
+  setTimeout(() => w.print(), 500);
+}
+
+// Undo/Redo
+const undoStack = [], redoStack = [];
+const MAX_UNDO = 30;
+function pushUndo(label) {
+  const state = gatherData();
+  undoStack.push({label,state,ts:Date.now()});
+  if (undoStack.length>MAX_UNDO) undoStack.shift();
+  redoStack.length = 0;
+  updateUndoButtons();
+}
+function undo() {
+  if (undoStack.length===0) return;
+  redoStack.push({label:'redo',state:gatherData(),ts:Date.now()});
+  applyData(undoStack.pop().state);
+  updatePreview(); updateUndoButtons();
+  showToast('\u21A9 Undo');
+}
+function redo() {
+  if (redoStack.length===0) return;
+  undoStack.push({label:'redo',state:gatherData(),ts:Date.now()});
+  applyData(redoStack.pop().state);
+  updatePreview(); updateUndoButtons();
+  showToast('\u21AA Redo');
+}
+function updateUndoButtons() {
+  const u = document.getElementById('undoBtn'), r = document.getElementById('redoBtn');
+  if (u) u.style.opacity = undoStack.length>0?'1':'0.4';
+  if (r) r.style.opacity = redoStack.length>0?'1':'0.4';
+}
+
+// Hook undo on field focus + try loading URL data on startup
+setTimeout(() => {
+  document.querySelectorAll('textarea,input[type="text"],select').forEach(el => {
+    el.addEventListener('focus', () => { if (el.value&&el.value.trim()) pushUndo(el.id||'edit'); });
+  });
+  loadFromURL();
+}, 300);
+
 </script>
 </body>
 </html>
