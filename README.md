@@ -218,16 +218,18 @@ All PRs require Maintainer approval before merge. No direct pushes to `main`.
 
 - [ ] More languages (FR, DE, JA, ZH, AR)
 - [ ] MCP server for agent integration
-- [x] Prompt versioning & history (localStorage)
-- [x] Export to file (.md, .json)
 - [ ] Prompt chaining (link multiple prompts)
-- [x] Dark/light theme toggle
 - [ ] Customizable UI layouts
-- [ ] Mobile-responsive improvements
-- [x] More built-in templates
 - [ ] Quality scoring algorithm improvements
 - [ ] Integration guides for OpenClaw, AutoGPT, CrewAI
 - [ ] Contributor evaluation system (professional background review)
+- [x] Prompt versioning & history (localStorage)
+- [x] Export to file (.md, .json)
+- [x] Dark/light theme toggle
+- [x] More built-in templates (6 total)
+- [x] Quick Builder mode (low-friction prompt generation)
+- [x] Collapsible sections, auto-save, progress dots, mobile tabs, keyboard shortcuts, onboarding, completion badges
+- [x] Token estimator (GPT-style weighting), {{var}} placeholder detection, URL share, PDF export, undo/redo
 
 ## License
 
