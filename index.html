@@ -1196,6 +1196,10 @@ body.light .mobile-tabs { background: var(--surface); }
 const I18N = {
   en: {
     headerSub: "— Trace the arc from idea to execution",
+    lenBrief: "Brief (<500 words)",
+    lenModerate: "Moderate (500-1500 words)",
+    lenComprehensive: "Comprehensive (1500-3000 words)",
+    lenUnlimited: "No length limit",
     btnReset: "🔄 Reset",
     btnTemplate: "📋 Template",
     btnCopy: "Copy Prompt",
@@ -1403,6 +1407,10 @@ const I18N = {
   },
   es: {
     headerSub: "— Traza el arco de la idea a la ejecución",
+    lenBrief: "Breve (<500 palabras)",
+    lenModerate: "Moderado (500-1500 palabras)",
+    lenComprehensive: "Comprensivo (1500-3000 palabras)",
+    lenUnlimited: "Sin límite",
     btnReset: "🔄 Limpiar",
     btnTemplate: "📋 Plantilla",
     btnCopy: "Copiar Prompt",
@@ -1592,6 +1600,10 @@ const I18N = {
   },
   pt: {
     headerSub: "— Traça o arco da ideia à execução",
+    lenBrief: "Breve (<500 palavras)",
+    lenModerate: "Moderado (500-1500 palavras)",
+    lenComprehensive: "Abrangente (1500-3000 palavras)",
+    lenUnlimited: "Sem limite",
     btnReset: "🔄 Limpar",
     btnTemplate: "📋 Template",
     btnCopy: "Copiar Prompt",
@@ -1785,7 +1797,7 @@ const I18N = {
 // STATE & LOGIC
 // ============================================================
 let selectedTools = new Set();
-// subtaskCounter removed - dynamic counting via querySelectorAll
+let subtaskCounter = 1;
 let currentLang = 'en';
 
 function t(key) {
@@ -1850,7 +1862,8 @@ function toggleTool(el) {
 
 // ============ SUBTASKS ============
 function addSubtask() {
-  const num = document.querySelectorAll('.subtask-card').length + 1;
+  subtaskCounter++;
+  const num = subtaskCounter;
   const card = document.createElement('div');
   card.className = 'subtask-card';
   card.id = `subtask-${num}`;
@@ -2055,17 +2068,6 @@ function buildJSON(d) {
 }
 
 // ============ QUALITY ============
-function estimateTokens(text) {
-  if (!text) return 0;
-  let tokens = 0;
-  for (let i = 0; i < text.length; i++) {
-    const code = text.charCodeAt(i);
-    if (code >= 0x4E00) tokens += 1.5;
-    else if ((code >= 65 && code <= 90) || (code >= 97 && code <= 122) || (code >= 48 && code <= 57)) tokens += 0.25;
-    else tokens += 0.2;
-  }
-  return Math.round(Math.max(tokens, text.length / 4));
-}
 function computeQuality(d) {
   const fields = [d.objective, d.successCriteria, d.inScope, d.outScope, d.role, d.background, d.constraints, d.mustDo];
   const filled = fields.filter(f => f && f.trim().length > 10).length;
@@ -2074,7 +2076,7 @@ function computeQuality(d) {
   const specFilled = specFields.filter(f => f && f.trim().length > 20).length;
   const specificity = Math.round((specFilled / specFields.length) * 100);
   const prompt = buildPrompt(d);
-  const tokens = estimateTokens(prompt || '');
+  const tokens = Math.round((prompt ? prompt.length : 0) / 4);
   return { completeness, specificity, tokens };
 }
 
@@ -2171,16 +2173,7 @@ function resetAllSilent() {
       <label style="margin-top:6px;margin-bottom:2px;">${t('s4DataLabel')}</label>
       <input type="text" class="subtask-data" data-ph="s4DataPh" placeholder="${t('s4DataPh')}" oninput="updatePreview()">
     </div>`;
-  if (typeof quickUseCase !== 'undefined') {
-    quickUseCase = 'general';
-    if (typeof quickState !== 'undefined') {
-      quickState.tone = 'professional'; quickState.depth = 'standard';
-      quickState.format = 'markdown'; quickState.target = 'Any LLM';
-    }
-    document.querySelectorAll('.quick-chip').forEach(c => c.classList.remove('selected'));
-    document.querySelectorAll('.usecase-card').forEach(c => c.classList.remove('selected'));
-  }
-  updatePreview();
+}
 
 // ============ LOAD TEMPLATE ============
 function loadTemplate() {
@@ -2250,10 +2243,12 @@ function loadTemplate() {
     const chip = document.querySelector(`[data-tool="${tool}"]`);
     if (chip) { selectedTools.add(tool); chip.classList.add('selected'); }
   });
+  subtaskCounter = 0;
   const list = document.getElementById('subtaskList');
   list.innerHTML = '';
-  t2.subtasks.forEach((st, idx) => {
-    const num = idx + 1;
+  t2.subtasks.forEach((st) => {
+    subtaskCounter++;
+    const num = subtaskCounter;
     const card = document.createElement('div');
     card.className = 'subtask-card'; card.id = `subtask-${num}`;
     card.innerHTML = `
@@ -2508,9 +2503,11 @@ function applyData(d) {
   // subtasks
   const list = document.getElementById('subtaskList');
   list.innerHTML = '';
+  subtaskCounter = 0;
   const subs = (d.subtasks && d.subtasks.length) ? d.subtasks : [{ name: '', desc: '', data: '' }];
-  subs.forEach((st, idx) => {
-    const num = idx + 1;
+  subs.forEach(st => {
+    subtaskCounter++;
+    const num = subtaskCounter;
     const card = document.createElement('div');
     card.className = 'subtask-card'; card.id = `subtask-${num}`;
     card.innerHTML = `
@@ -2759,15 +2756,14 @@ function askSmartQuestions() {
   showToast(t('toastQuestionsReady'));
 }
 
-// Regenerate Quick Builder output when the language changes, so generated content follows the selected language
+// Regenerate Quick Builder output when the language changes
 _langChangeHooks.push(() => {
-  _changeLangCore(lang);
   const idea = document.getElementById('quickPrompt');
   const qb = document.getElementById('quickBuilder');
   if (idea && qb && idea.value.trim() && getComputedStyle(qb).display !== 'none' && document.getElementById('objective').value) {
     generateQuickPrompt(false);
   }
-};
+});
 
 // ---------- TEMPLATE LIBRARY DATA ----------
 const TEMPLATES = {
@@ -3184,10 +3180,34 @@ showOnboarding();
 
 
 // ═══════════════════════════════════════════════════
-//  BOOST Tier 2 — session 2026-06-09
+//  BOOST Tier 2 — 2026-06-09
 // ═══════════════════════════════════════════════════
 
-// Placeholder {{var}} detection & styling
+// GPT-style token estimator (weights CJK 1.5x, latin 0.25x, whitespace 0.2x)
+function estimateTokens(text) {
+  if (!text) return 0;
+  let tokens = 0;
+  for (let i = 0; i < text.length; i++) {
+    const code = text.charCodeAt(i);
+    if (code >= 0x4E00) tokens += 1.5;
+    else if ((code >= 65 && code <= 90) || (code >= 97 && code <= 122) || (code >= 48 && code <= 57)) tokens += 0.25;
+    else tokens += 0.2;
+  }
+  return Math.round(Math.max(tokens, text.length / 4));
+}
+
+// Override computeQuality to use new estimator
+(function() {
+  const _cq = computeQuality;
+  computeQuality = function(d) {
+    const r = _cq(d);
+    const prompt = buildPrompt(d);
+    r.tokens = estimateTokens(prompt || '');
+    return r;
+  };
+})();
+
+// {{var}} placeholder detection
 const PLACEHOLDER_RE = /\{\{([^}]+)\}\}/g;
 function extractPlaceholders(text) {
   if (!text) return [];
@@ -3200,16 +3220,8 @@ function collectAllPlaceholders() {
   document.querySelectorAll('.subtask-name,.subtask-desc,.subtask-data').forEach(el => { if(el.value) extractPlaceholders(el.value).forEach(v => all.add(v)); });
   return [...all];
 }
-function updateVarsBadge() {
-  const vars = collectAllPlaceholders();
-  const badge = document.getElementById('varsBadge');
-  const count = document.getElementById('varsCount');
-  if (!badge || !count) return;
-  if (vars.length > 0) { badge.style.display = 'inline-flex'; count.textContent = vars.length; badge.title = vars.join(', '); }
-  else { badge.style.display = 'none'; }
-}
 
-// URL Share (encode prompt data in URL hash)
+// URL Share
 function shareViaURL() {
   const d = gatherData();
   if (!d.objective) { showToast(t('tplNoObj')); return; }
@@ -3230,7 +3242,7 @@ function loadFromURL() {
   } catch(e) { return false; }
 }
 
-// Export PDF via print dialog
+// Export PDF
 function exportPDF() {
   const d = gatherData();
   if (!d.objective) { showToast(t('tplNoObj')); return; }
@@ -3249,29 +3261,23 @@ function pushUndo(label) {
   undoStack.push({label,state,ts:Date.now()});
   if (undoStack.length>MAX_UNDO) undoStack.shift();
   redoStack.length = 0;
-  updateUndoButtons();
 }
 function undo() {
   if (undoStack.length===0) return;
   redoStack.push({label:'redo',state:gatherData(),ts:Date.now()});
   applyData(undoStack.pop().state);
-  updatePreview(); updateUndoButtons();
+  updatePreview();
   showToast('\u21A9 Undo');
 }
 function redo() {
   if (redoStack.length===0) return;
   undoStack.push({label:'redo',state:gatherData(),ts:Date.now()});
   applyData(redoStack.pop().state);
-  updatePreview(); updateUndoButtons();
+  updatePreview();
   showToast('\u21AA Redo');
 }
-function updateUndoButtons() {
-  const u = document.getElementById('undoBtn'), r = document.getElementById('redoBtn');
-  if (u) u.style.opacity = undoStack.length>0?'1':'0.4';
-  if (r) r.style.opacity = redoStack.length>0?'1':'0.4';
-}
 
-// Hook undo on field focus + try loading URL data on startup
+// Hook undo on field focus + try URL load on startup
 setTimeout(() => {
   document.querySelectorAll('textarea,input[type="text"],select').forEach(el => {
     el.addEventListener('focus', () => { if (el.value&&el.value.trim()) pushUndo(el.id||'edit'); });
