@@ -27,6 +27,7 @@ classifiers = [
 
 [project.scripts]
 trammel-pe = "trammel_pe.cli:main"
+trammel-pe-mcp = "trammel_pe.mcp_server:main"
 
 [project.urls]
 Homepage = "https://codeberg.org/JJSolutions/trammel-pe"
