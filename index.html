@@ -265,6 +265,16 @@ textarea.large { min-height: 100px; }
   gap: 8px;
   margin-top: 8px;
 }
+.quality-tips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  width: 100%;
+  margin-bottom: 10px;
+  font-size: 0.72rem;
+  color: var(--muted, #8b949e);
+}
+.quality-tips .q-tip { opacity: 0.85; }
 .quality-item {
   flex: 1;
   background: var(--bg);
@@ -1078,6 +1088,7 @@ body.light .mobile-tabs { background: var(--surface); }
       </div>
     </div>
   </div>
+  <div class="quality-tips" id="qualityTips" style="display:none;"></div>
 
   <div class="tabs">
     <div class="tab active" onclick="switchTab(this, 'formatted')">Formatted</div>
@@ -1309,6 +1320,12 @@ const I18N = {
     // Preview
     prevTitle: "📝 Generated Prompt",
     qComplete: "Complete", qSpecificity: "Specificity", qTokens: "~Tokens",
+    copyFailed: "Copy failed — select the text and copy manually",
+    qTipVerb: "Start your objective with an action verb (analyze, build, write...)",
+    qTipMeasure: "Make success criteria measurable: add numbers or quantities",
+    qTipVague: "Replace vague words (stuff, things, etc) with specifics",
+    qTipScope: "Define both what's IN scope and what's OUT of scope",
+    qTipSubtasks: "Break the task into sub-tasks for better results",
     emptyMain: "Fill in the form to generate your structured prompt",
     emptySub: "The prompt updates live as you type",
     emptyMd: "Markdown output appears here",
@@ -1504,6 +1521,12 @@ const I18N = {
     s9FocusPh: "ej. Precisión de afirmaciones, completitud de cobertura, especificidad de recomendaciones, claridad de presentación",
     prevTitle: "📝 Prompt Generado",
     qComplete: "Completo", qSpecificity: "Especificidad", qTokens: "~Tokens",
+    copyFailed: "Falló el copiado — selecciona el texto y cópialo manualmente",
+    qTipVerb: "Empieza tu objetivo con un verbo de acción (analiza, construye, escribe...)",
+    qTipMeasure: "Haz los criterios de éxito medibles: añade números o cantidades",
+    qTipVague: "Reemplaza palabras vagas (cosas, algo, etc) con detalles específicos",
+    qTipScope: "Define qué está DENTRO y qué está FUERA del alcance",
+    qTipSubtasks: "Divide la tarea en subtareas para mejores resultados",
     emptyMain: "Llena el formulario para generar tu prompt estructurado",
     emptySub: "El prompt se actualiza en vivo mientras escribes",
     emptyMd: "La salida en Markdown aparece aquí",
@@ -1697,6 +1720,12 @@ const I18N = {
     s9FocusPh: "ex. Precisão de afirmações, completude de cobertura, especificidade de recomendações, clareza de apresentação",
     prevTitle: "📝 Prompt Gerado",
     qComplete: "Completo", qSpecificity: "Especificidade", qTokens: "~Tokens",
+    copyFailed: "Falha ao copiar — selecione o texto e copie manualmente",
+    qTipVerb: "Comece seu objetivo com um verbo de ação (analise, construa, escreva...)",
+    qTipMeasure: "Torne os critérios de sucesso mensuráveis: adicione números ou quantidades",
+    qTipVague: "Substitua palavras vagas (coisas, algo, etc) por detalhes específicos",
+    qTipScope: "Defina o que está DENTRO e o que está FORA do escopo",
+    qTipSubtasks: "Divida a tarefa em subtarefas para melhores resultados",
     emptyMain: "Preencha o formulário para gerar seu prompt estruturado",
     emptySub: "O prompt é atualizado ao vivo enquanto você digita",
     emptyMd: "A saída em Markdown aparece aqui",
@@ -2068,16 +2097,52 @@ function buildJSON(d) {
 }
 
 // ============ QUALITY ============
+// ---- Quality Scoring v2: content heuristics, not just length ----
+const QS_ACTION_VERBS = /^(analyze|analiza|analise|build|construye|construa|write|escribe|escreva|create|crea|crie|design|dise|projete|review|revisa|revise|audit|audita|audite|summarize|resume|resuma|generate|genera|gere|develop|desarrolla|desenvolva|implement|implementa|implemente|evaluate|eval|avalie|compare|compara|research|investiga|pesquise|plan|planifica|planeje|debug|depura|depure|refactor|refactoriza|refatore|test|prueba|teste|document|documenta|documente|translate|traduce|traduza|optimize|optimiza|otimize|identify|identifica|identifique|extract|extrae|extraia|draft|redacta|rascunhe|fix|arregla|corrige|corrija|map|mapea|mapeie|define|definir?)/i;
+const QS_VAGUE_WORDS = /\b(etc\.?|stuff|things?|whatever|something|cosas?|algo|cualquier cosa|coisas?|algum[a]? coisa|qualquer coisa)\b/i;
+const QS_MEASURABLE = /\d+|\b(all|each|every|per|at least|at most|todos?|todas?|cada|al menos|como m[íi]nimo|m[áa]ximo|cada um|pelo menos|no m[áa]ximo)\b/i;
+
 function computeQuality(d) {
   const fields = [d.objective, d.successCriteria, d.inScope, d.outScope, d.role, d.background, d.constraints, d.mustDo];
   const filled = fields.filter(f => f && f.trim().length > 10).length;
   const completeness = Math.round((filled / fields.length) * 100);
+
+  // Specificity v2: base (filled detail fields) + content signals
   const specFields = [d.successCriteria, d.inScope, d.outScope, d.constraints, d.mustDo, d.edgeCases];
   const specFilled = specFields.filter(f => f && f.trim().length > 20).length;
-  const specificity = Math.round((specFilled / specFields.length) * 100);
+  let spec = (specFilled / specFields.length) * 60; // base: 60 pts
+
+  const tips = [];
+
+  // Signal 1: objective starts with an action verb (+10)
+  const verbOk = d.objective && QS_ACTION_VERBS.test(d.objective.trim());
+  if (verbOk) spec += 10;
+  else if (d.objective && d.objective.trim().length > 10) tips.push('qTipVerb');
+
+  // Signal 2: success criteria is measurable (+10)
+  const measurable = d.successCriteria && QS_MEASURABLE.test(d.successCriteria);
+  if (measurable) spec += 10;
+  else if (d.successCriteria && d.successCriteria.trim().length > 10) tips.push('qTipMeasure');
+
+  // Signal 3: no vague filler words (+5, penalty tip if found)
+  const vague = QS_VAGUE_WORDS.test((d.objective || '') + ' ' + (d.successCriteria || ''));
+  if (!vague) spec += 5;
+  else tips.push('qTipVague');
+
+  // Signal 4: scope balance — both IN and OUT defined (+10)
+  const scopeBalanced = d.inScope && d.inScope.trim().length > 10 && d.outScope && d.outScope.trim().length > 10;
+  if (scopeBalanced) spec += 10;
+  else if ((d.inScope && d.inScope.trim()) || (d.outScope && d.outScope.trim())) tips.push('qTipScope');
+
+  // Signal 5: at least one real subtask (+5)
+  const hasSubtasks = d.subtasks && d.subtasks.some(st => st.name && st.desc);
+  if (hasSubtasks) spec += 5;
+  else if (completeness >= 40) tips.push('qTipSubtasks');
+
+  const specificity = Math.min(100, Math.round(spec));
   const prompt = buildPrompt(d);
   const tokens = Math.round((prompt ? prompt.length : 0) / 4);
-  return { completeness, specificity, tokens };
+  return { completeness, specificity, tokens, tips: tips.slice(0, 3) };
 }
 
 function updateQualityBar(q) {
@@ -2090,6 +2155,16 @@ function updateQualityBar(q) {
   se.className = 'val ' + (q.specificity >= 70 ? 'good' : q.specificity >= 40 ? 'warn' : 'bad');
   te.textContent = q.tokens >= 1000 ? (q.tokens / 1000).toFixed(1) + 'k' : q.tokens;
   te.className = 'val good';
+  const tipsEl = document.getElementById('qualityTips');
+  if (tipsEl) {
+    if (q.tips && q.tips.length) {
+      tipsEl.innerHTML = q.tips.map(k => '<span class="q-tip">▸ ' + escapeHtml(t(k)) + '</span>').join('');
+      tipsEl.style.display = 'flex';
+    } else {
+      tipsEl.innerHTML = '';
+      tipsEl.style.display = 'none';
+    }
+  }
 }
 
 // ============ UPDATE PREVIEW ============

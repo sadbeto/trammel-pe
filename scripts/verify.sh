@@ -69,6 +69,7 @@ import re, sys
 html = open(sys.argv[1]).read()
 used = set(re.findall(r'data-i18n="([^"]+)"', html))
 used |= set(re.findall(r'data-ph="([^"]+)"', html))
+used |= set(re.findall(r"\bt\('([A-Za-z0-9_]+)'\)", html))  # keys used via t() in JS
 # crude per-language block check: each used key should appear at least 3 times as `key:` (en/es/pt)
 missing = []
 for k in sorted(used):
