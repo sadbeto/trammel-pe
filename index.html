@@ -265,6 +265,16 @@ textarea.large { min-height: 100px; }
   gap: 8px;
   margin-top: 8px;
 }
+.quality-tips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  width: 100%;
+  margin-bottom: 10px;
+  font-size: 0.72rem;
+  color: var(--muted, #8b949e);
+}
+.quality-tips .q-tip { opacity: 0.85; }
 .quality-item {
   flex: 1;
   background: var(--bg);
@@ -345,6 +355,116 @@ select {
 }
 .empty-state .emoji { font-size: 3rem; margin-bottom: 12px; }
 
+/* ===== UX: Collapsible sections ===== */
+.section-title { cursor: pointer; user-select: none; }
+.section-title:hover { opacity: 0.85; }
+.section-toggle { margin-left: auto; font-size: 0.7rem; transition: transform 0.2s; color: var(--text2); }
+.section-toggle.collapsed { transform: rotate(-90deg); }
+.section-body { overflow: hidden; transition: max-height 0.3s ease; max-height: 2000px; }
+.section-body.collapsed { max-height: 0; padding: 0; margin: 0; }
+.section-badge { font-size: 0.7rem; margin-left: 8px; opacity: 0; transition: opacity 0.2s; }
+.section-badge.visible { opacity: 1; }
+
+/* ===== UX: Progress sidebar dots ===== */
+.progress-dots {
+  position: fixed; right: 12px; top: 50%; transform: translateY(-50%);
+  display: flex; flex-direction: column; gap: 8px; z-index: 90;
+}
+.progress-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--border); border: 1px solid var(--border);
+  cursor: pointer; transition: all 0.2s; position: relative;
+}
+.progress-dot.filled { background: var(--accent3); border-color: var(--accent3); }
+.progress-dot:hover { transform: scale(1.4); }
+.progress-dot .dot-tooltip {
+  display: none; position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
+  background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+  padding: 4px 8px; font-size: 0.72rem; white-space: nowrap; color: var(--text);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.progress-dot:hover .dot-tooltip { display: block; }
+
+/* ===== UX: Mobile tabs ===== */
+.mobile-tabs {
+  display: none; background: var(--surface); border-bottom: 1px solid var(--border);
+  position: sticky; top: 64px; z-index: 99;
+}
+.mobile-tab {
+  flex: 1; padding: 12px; text-align: center; font-size: 0.9rem; font-weight: 600;
+  cursor: pointer; color: var(--text2); border-bottom: 2px solid transparent;
+  transition: all 0.2s; background: none; border-top: none; border-left: none; border-right: none;
+}
+.mobile-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.mobile-tab:hover { color: var(--accent); }
+
+/* ===== UX: Onboarding overlay ===== */
+.onboarding-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  z-index: 400; align-items: center; justify-content: center; padding: 20px;
+}
+.onboarding-overlay.open { display: flex; }
+.onboarding-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  padding: 32px; max-width: 480px; width: 100%; text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.onboarding-card h2 {
+  font-size: 1.5rem; margin-bottom: 12px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.onboarding-card p { color: var(--text2); font-size: 0.9rem; line-height: 1.6; margin-bottom: 16px; }
+.onboarding-steps { text-align: left; margin: 16px 0; }
+.onboarding-step {
+  display: flex; align-items: flex-start; gap: 10px;
+  margin-bottom: 10px; font-size: 0.85rem; color: var(--text);
+}
+.onboarding-step .step-num {
+  background: var(--accent); color: var(--bg); min-width: 22px; height: 22px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; font-weight: 700; flex-shrink: 0;
+}
+.onboarding-actions { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+
+/* ===== UX: Auto-save indicator ===== */
+.autosave-indicator {
+  position: fixed; bottom: 16px; right: 16px; font-size: 0.72rem;
+  color: var(--text2); z-index: 80; display: flex; align-items: center; gap: 6px;
+  opacity: 0; transition: opacity 0.3s;
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 4px 10px; border-radius: 20px;
+}
+.autosave-indicator.show { opacity: 1; }
+
+/* ===== UX: Keyboard shortcuts hint ===== */
+.shortcuts-hint {
+  position: fixed; bottom: 16px; left: 16px; font-size: 0.68rem;
+  color: var(--text2); z-index: 80; opacity: 0.5; transition: opacity 0.2s;
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 4px 10px; border-radius: 20px; cursor: pointer;
+}
+.shortcuts-hint:hover { opacity: 1; }
+.shortcuts-modal {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+  z-index: 500; align-items: center; justify-content: center; padding: 20px;
+}
+.shortcuts-modal.open { display: flex; }
+.shortcuts-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px; max-width: 380px; width: 100%;
+}
+.shortcuts-card h3 { color: var(--accent); margin-bottom: 14px; font-size: 1rem; }
+.shortcut-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 0; font-size: 0.82rem; border-bottom: 1px solid var(--border);
+}
+.shortcut-row:last-child { border-bottom: none; }
+.shortcut-key {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 4px;
+  padding: 2px 8px; font-family: monospace; font-size: 0.78rem; color: var(--accent);
+}
+
 @media (max-width: 768px) {
   .container { flex-direction: column; height: auto; }
   .form-panel, .preview-panel { width: 100%; border-right: none; }
@@ -352,6 +472,11 @@ select {
   .tool-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
   .app-header { flex-wrap: wrap; gap: 8px; }
   .header-actions { flex-wrap: wrap; }
+  .progress-dots { display: none; }
+  .mobile-tabs { display: flex; }
+  .form-panel.hidden-mobile, .preview-panel.hidden-mobile { display: none; }
+  .shortcuts-hint { display: none; }
+  .autosave-indicator { bottom: 56px; }
 }
 
 /* ===== BOOST: Light theme ===== */
@@ -365,6 +490,9 @@ body.light {
   --glow: 0 0 20px rgba(56,189,248,0.18);
 }
 body.light .app-header h1 span { opacity: 0.55; }
+body.light .onboarding-card { box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+body.light .progress-dot { border-color: var(--border); }
+body.light .mobile-tabs { background: var(--surface); }
 
 /* ===== BOOST: Modal ===== */
 .modal-overlay {
@@ -583,6 +711,8 @@ body.light .app-header h1 span { opacity: 0.55; }
   .quick-actions { grid-template-columns: 1fr; }
   .usecase-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
 }
+
+.placeholder-var{background:rgba(129,140,248,0.25);border:1px dashed var(--accent2);border-radius:3px;padding:1px 4px;font-family:monospace;font-size:0.85em;}
 </style>
 </head>
 <body>
@@ -600,8 +730,56 @@ body.light .app-header h1 span { opacity: 0.55; }
     <button class="btn" onclick="saveCurrent()" title="Save / Guardar"><span data-i18n="btnSave">💾 Save</span></button>
     <button class="btn" onclick="openLibrary()" title="Library / Biblioteca"><span data-i18n="btnLibrary">📚 Library</span></button>
     <button class="btn" onclick="openExport()" title="Export / Exportar"><span data-i18n="btnExport">⬇️ Export</span></button>
-    <button class="btn" onclick="toggleTheme()" id="themeBtn" title="Theme / Tema">🌙</button>
+    <button class="btn" onclick="openChains()" id="chainBtn" title="Prompt Chains" style="display:none;"><span data-i18n="btnChain">🔗 Chain</span></button>
+    <button class="btn" onclick="toggleTheme()" id="themeBtn" title="Theme / Tema" aria-label="Toggle dark/light theme">🌙</button>
     <button class="btn btn-primary" onclick="copyPrompt()">📋 <span data-i18n="btnCopy">Copy Prompt</span></button>
+  </div>
+</div>
+
+<!-- UX: Mobile tabs for form/preview toggle -->
+<div class="mobile-tabs" id="mobileTabs">
+  <button class="mobile-tab active" id="mobileTabForm" onclick="switchMobileTab('form')" data-i18n="mobileTabForm">📝 Form</button>
+  <button class="mobile-tab" id="mobileTabPreview" onclick="switchMobileTab('preview')" data-i18n="mobileTabPreview">👁️ Preview</button>
+</div>
+
+<!-- UX: Progress dots sidebar -->
+<div class="progress-dots" id="progressDots"></div>
+
+<!-- UX: Auto-save indicator -->
+<div class="autosave-indicator" id="autosaveIndicator"><span id="autosaveIcon">💾</span> <span data-i18n="autosaveLabel" id="autosaveLabel">Auto-saved</span></div>
+
+<!-- UX: Keyboard shortcuts hint -->
+<div class="shortcuts-hint" onclick="openShortcuts()" data-i18n="shortcutsHint">⌨️ Ctrl+S Save · Ctrl+1-9 Sections</div>
+
+<!-- UX: Onboarding overlay (first visit) -->
+<div class="onboarding-overlay" id="onboardingOverlay" onclick="if(event.target===this)closeOnboarding()">
+  <div class="onboarding-card">
+    <h2 data-i18n="onboardTitle">👋 Welcome to Trammel PE!</h2>
+    <p data-i18n="onboardDesc">Build structured, copy-ready prompts for any AI agent in 9 steps. No more guessing — trace the arc from idea to execution.</p>
+    <div class="onboarding-steps">
+      <div class="onboarding-step"><span class="step-num">1</span><span data-i18n="onboardStep1">Start with your Objective — what do you want the AI to do?</span></div>
+      <div class="onboarding-step"><span class="step-num">2</span><span data-i18n="onboardStep2">Define scope, tools, and task breakdown</span></div>
+      <div class="onboarding-step"><span class="step-num">3</span><span data-i18n="onboardStep3">Set role, output format, and constraints</span></div>
+      <div class="onboarding-step"><span class="step-num">4</span><span data-i18n="onboardStep4">Copy the generated prompt → paste into any LLM</span></div>
+    </div>
+    <div class="onboarding-actions">
+      <button class="btn btn-primary" onclick="closeOnboarding();document.getElementById('objective').focus();" data-i18n="onboardStart">🚀 Start Building</button>
+      <button class="btn" onclick="closeOnboarding();useTemplate('competitive');" data-i18n="onboardTemplate">📋 Use Template</button>
+    </div>
+  </div>
+</div>
+
+<!-- UX: Shortcuts modal -->
+<div class="shortcuts-modal" id="shortcutsModal" onclick="if(event.target===this)closeShortcuts()">
+  <div class="shortcuts-card">
+    <h3 data-i18n="shortcutsTitle">⌨️ Keyboard Shortcuts</h3>
+    <div class="shortcut-row"><span data-i18n="scSave">Save draft</span><span class="shortcut-key">Ctrl+S</span></div>
+    <div class="shortcut-row"><span data-i18n="scCopy">Copy prompt</span><span class="shortcut-key">Ctrl+Shift+C</span></div>
+    <div class="shortcut-row"><span data-i18n="scJump">Jump to section</span><span class="shortcut-key">Ctrl+1–9</span></div>
+    <div class="shortcut-row"><span data-i18n="scCollapse">Toggle section</span><span class="shortcut-key">Alt+1–9</span></div>
+    <div class="shortcut-row"><span data-i18n="scExpandAll">Expand all sections</span><span class="shortcut-key">Ctrl+E</span></div>
+    <div class="shortcut-row"><span data-i18n="scCollapseAll">Collapse all sections</span><span class="shortcut-key">Ctrl+Shift+E</span></div>
+    <div style="margin-top:14px;text-align:center;"><button class="btn" onclick="closeShortcuts()" data-i18n="modalClose">Close</button></div>
   </div>
 </div>
 
@@ -611,8 +789,8 @@ body.light .app-header h1 span { opacity: 0.55; }
 
   <!-- V2: QUICK BUILDER DEFAULT -->
   <div class="mode-switch" role="tablist" aria-label="Builder mode">
-    <button class="btn active" id="quickModeBtn" onclick="setBuilderMode('quick')" data-i18n="quickModeBtn">⚡ Quick Builder</button>
-    <button class="btn" id="advancedModeBtn" onclick="setBuilderMode('advanced')" data-i18n="advancedModeBtn">🛠️ Advanced Builder</button>
+    <button class="btn active" id="quickModeBtn" role="tab" aria-selected="true" aria-controls="quickBuilder" onclick="setBuilderMode('quick')" data-i18n="quickModeBtn">⚡ Quick Builder</button>
+    <button class="btn" id="advancedModeBtn" role="tab" aria-selected="false" aria-controls="advancedBuilder" onclick="setBuilderMode('advanced')" data-i18n="advancedModeBtn">🛠️ Advanced Builder</button>
   </div>
 
   <div id="quickBuilder">
@@ -687,8 +865,9 @@ body.light .app-header h1 span { opacity: 0.55; }
     <p class="advanced-note" data-i18n="advancedNote">Advanced mode keeps the full 9-step framework for precision work.</p>
 
   <!-- STEP 1: OBJECTIVE -->
-  <div class="section">
-    <div class="section-title"><span class="num">1</span> <span data-i18n="s1Title">🎯 Objective — What Do You Want Done?</span></div>
+  <div class="section" data-section="1">
+    <div class="section-title" onclick="toggleSection(1)"><span class="num">1</span> <span data-i18n="s1Title">🎯 Objective — What Do You Want Done?</span><span class="section-badge" id="badge-1">✅</span><span class="section-toggle" id="toggle-1">▼</span></div>
+    <div class="section-body" id="section-body-1">
     <label for="objective" data-i18n="s1ObjLabel">Main Objective (start with a verb)</label>
     <textarea id="objective" data-ph="s1ObjPh" placeholder="e.g. Analyze the competitive landscape for a SaaS startup offering AI-powered customer support automation in Latin America" oninput="updatePreview()"></textarea>
 
@@ -711,11 +890,13 @@ body.light .app-header h1 span { opacity: 0.55; }
 
     <label for="successCriteria" data-i18n="s1SuccessLabel">Success Criteria (how will you know it's done right?)</label>
     <textarea id="successCriteria" data-ph="s1SuccessPh" placeholder="e.g. Produces a prioritized list of 5-7 competitors with revenue estimates, funding stage, key differentiators, and market positioning map" oninput="updatePreview()"></textarea>
+    </div>
   </div>
 
   <!-- STEP 2: SCOPE -->
-  <div class="section">
-    <div class="section-title"><span class="num">2</span> <span data-i18n="s2Title">🔭 Scope — Boundaries & Constraints</span></div>
+  <div class="section" data-section="2">
+    <div class="section-title" onclick="toggleSection(2)"><span class="num">2</span> <span data-i18n="s2Title">🔭 Scope — Boundaries & Constraints</span><span class="section-badge" id="badge-2">✅</span><span class="section-toggle" id="toggle-2">▼</span></div>
+    <div class="section-body" id="section-body-2">
     <label for="inScope" data-i18n="s2InLabel">IN Scope (what to cover)</label>
     <textarea id="inScope" data-ph="s2InPh" placeholder="e.g. Latin American market, companies with >$1M ARR, AI/ML-powered products, both direct and indirect competitors" oninput="updatePreview()"></textarea>
 
@@ -734,11 +915,13 @@ body.light .app-header h1 span { opacity: 0.55; }
       <div class="toggle" id="toggleSelfLearn" onclick="toggleSwitch(this)"></div>
       <span class="toggle-label" data-i18n="s2SelfLearn">Enable Self-Learning Loop (agent iterates & refines)</span>
     </div>
+    </div>
   </div>
 
   <!-- STEP 3: TOOLS -->
-  <div class="section">
-    <div class="section-title"><span class="num">3</span> <span data-i18n="s3Title">🛠️ Tools — What Should the Agent Use?</span></div>
+  <div class="section" data-section="3">
+    <div class="section-title" onclick="toggleSection(3)"><span class="num">3</span> <span data-i18n="s3Title">🛠️ Tools — What Should the Agent Use?</span><span class="section-badge" id="badge-3">✅</span><span class="section-toggle" id="toggle-3">▼</span></div>
+    <div class="section-body" id="section-body-3">
     <p style="font-size:0.82rem;color:var(--text2);margin-bottom:8px;" data-i18n="s3Desc">Select tools the agent should leverage. These will be specified in the prompt.</p>
     <div class="tool-grid" id="toolGrid">
       <div class="tool-chip" data-tool="web_search" onclick="toggleTool(this)">🔍 <span data-i18n="tWebSearch">Web Search</span></div>
@@ -756,11 +939,13 @@ body.light .app-header h1 span { opacity: 0.55; }
     </div>
     <label for="customTools" style="margin-top:10px;" data-i18n="s3CustomLabel">Custom Tools (one per line)</label>
     <textarea id="customTools" data-ph="s3CustomPh" placeholder="e.g.&#10;Linear API for project tracking&#10;GitHub API for code review&#10;TastyTrade API for options data" oninput="updatePreview()"></textarea>
+    </div>
   </div>
 
   <!-- STEP 4: TASK DECOMPOSITION -->
-  <div class="section">
-    <div class="section-title"><span class="num">4</span> <span data-i18n="s4Title">🧩 Task Decomposition — Break It Down</span></div>
+  <div class="section" data-section="4">
+    <div class="section-title" onclick="toggleSection(4)"><span class="num">4</span> <span data-i18n="s4Title">🧩 Task Decomposition — Break It Down</span><span class="section-badge" id="badge-4">✅</span><span class="section-toggle" id="toggle-4">▼</span></div>
+    <div class="section-body" id="section-body-4">
     <p style="font-size:0.82rem;color:var(--text2);margin-bottom:8px;" data-i18n="s4Desc">Divide the objective into sequential or parallel sub-tasks. Each sub-task gets its own focused prompt segment.</p>
     <div class="subtask-list" id="subtaskList">
       <div class="subtask-card" id="subtask-1">
@@ -773,11 +958,13 @@ body.light .app-header h1 span { opacity: 0.55; }
       </div>
     </div>
     <button class="btn btn-success" onclick="addSubtask()" style="margin-top:8px;" data-i18n="s4AddBtn">+ Add Sub-task</button>
+    </div>
   </div>
 
   <!-- STEP 5: ROLE & PERSONA -->
-  <div class="section">
-    <div class="section-title"><span class="num">5</span> <span data-i18n="s5Title">🎭 Role & Persona</span></div>
+  <div class="section" data-section="5">
+    <div class="section-title" onclick="toggleSection(5)"><span class="num">5</span> <span data-i18n="s5Title">🎭 Role & Persona</span><span class="section-badge" id="badge-5">✅</span><span class="section-toggle" id="toggle-5">▼</span></div>
+    <div class="section-body" id="section-body-5">
     <label for="role" data-i18n="s5RoleLabel">Who should the AI be?</label>
     <textarea id="role" data-ph="s5RolePh" placeholder="e.g. Senior competitive intelligence analyst with 10+ years in SaaS markets across Latin America, fluent in Portuguese and Spanish" oninput="updatePreview()"></textarea>
 
@@ -791,11 +978,13 @@ body.light .app-header h1 span { opacity: 0.55; }
       <option value="technical" data-i18n="s5ToneTech">Technical & Precise</option>
       <option value="executive" data-i18n="s5ToneExec">Executive Summary Style</option>
     </select>
+    </div>
   </div>
 
   <!-- STEP 6: OUTPUT FORMAT -->
-  <div class="section">
-    <div class="section-title"><span class="num">6</span> <span data-i18n="s6Title">📋 Output Format</span></div>
+  <div class="section" data-section="6">
+    <div class="section-title" onclick="toggleSection(6)"><span class="num">6</span> <span data-i18n="s6Title">📋 Output Format</span><span class="section-badge" id="badge-6">✅</span><span class="section-toggle" id="toggle-6">▼</span></div>
+    <div class="section-body" id="section-body-6">
     <label for="format" data-i18n="s6FormatLabel">Primary Output Format</label>
     <select id="format" onchange="updatePreview()">
       <option value="markdown" data-i18n="s6FmtMd">Markdown (structured with headers)</option>
@@ -817,11 +1006,13 @@ body.light .app-header h1 span { opacity: 0.55; }
 
     <label for="customFormat" data-i18n="s6CustomLabel">Custom Format Instructions</label>
     <textarea id="customFormat" data-ph="s6CustomPh" placeholder="e.g. Start with an executive summary table, then detailed sections, end with a risk matrix and action items numbered 1-10" oninput="updatePreview()"></textarea>
+    </div>
   </div>
 
   <!-- STEP 7: CONTEXT & DATA -->
-  <div class="section">
-    <div class="section-title"><span class="num">7</span> <span data-i18n="s7Title">📚 Context & Data</span></div>
+  <div class="section" data-section="7">
+    <div class="section-title" onclick="toggleSection(7)"><span class="num">7</span> <span data-i18n="s7Title">📚 Context & Data</span><span class="section-badge" id="badge-7">✅</span><span class="section-toggle" id="toggle-7">▼</span></div>
+    <div class="section-body" id="section-body-7">
     <label for="background" data-i18n="s7BgLabel">Background Context</label>
     <textarea class="large" id="background" data-ph="s7BgPh" placeholder="e.g. We're a 6-month-old startup with 3 enterprise clients in Mexico and Brazil. Our product uses GPT-4 for ticket classification and response drafting. We're preparing a Series A pitch." oninput="updatePreview()"></textarea>
 
@@ -830,11 +1021,13 @@ body.light .app-header h1 span { opacity: 0.55; }
 
     <label for="audience" data-i18n="s7AudLabel">Target Audience for Output</label>
     <input type="text" id="audience" data-ph="s7AudPh" placeholder="e.g. Series A investors, internal product team, C-suite" oninput="updatePreview()">
+    </div>
   </div>
 
   <!-- STEP 8: CONSTRAINTS -->
-  <div class="section">
-    <div class="section-title"><span class="num">8</span> <span data-i18n="s8Title">🚧 Constraints & Guardrails</span></div>
+  <div class="section" data-section="8">
+    <div class="section-title" onclick="toggleSection(8)"><span class="num">8</span> <span data-i18n="s8Title">🚧 Constraints & Guardrails</span><span class="section-badge" id="badge-8">✅</span><span class="section-toggle" id="toggle-8">▼</span></div>
+    <div class="section-body" id="section-body-8">
     <label for="constraints" data-i18n="s8MustNotLabel">Must NOT (what to avoid)</label>
     <textarea id="constraints" data-ph="s8MustNotPh" placeholder="e.g. Do not include companies with no public revenue data. Avoid speculation without clear sourcing. No generic advice — every point must be specific and actionable." oninput="updatePreview()"></textarea>
 
@@ -843,11 +1036,13 @@ body.light .app-header h1 span { opacity: 0.55; }
 
     <label for="edgeCases" data-i18n="s8EdgeLabel">Edge Cases & Known Risks</label>
     <textarea id="edgeCases" data-ph="s8EdgePh" placeholder="e.g. Some competitors may have stealth AI features not publicly disclosed. Market sizing in LATAM is unreliable — triangulate from multiple sources." oninput="updatePreview()"></textarea>
+    </div>
   </div>
 
   <!-- STEP 9: SELF-LEARNING LOOP -->
-  <div class="section" id="selfLearnSection" style="display:none;border-color:var(--accent2);">
-    <div class="section-title" style="color:var(--accent2);"><span class="num" style="background:var(--accent2);">9</span> <span data-i18n="s9Title">🔄 Self-Learning Loop Configuration</span></div>
+  <div class="section" data-section="9" id="selfLearnSection" style="display:none;border-color:var(--accent2);">
+    <div class="section-title" style="color:var(--accent2);" onclick="toggleSection(9)"><span class="num" style="background:var(--accent2);">9</span> <span data-i18n="s9Title">🔄 Self-Learning Loop Configuration</span><span class="section-badge" id="badge-9">✅</span><span class="section-toggle" id="toggle-9">▼</span></div>
+    <div class="section-body" id="section-body-9">
     <p style="font-size:0.82rem;color:var(--text2);margin-bottom:10px;" data-i18n="s9Desc">Configure how the agent should iterate and refine its own output.</p>
 
     <label for="iterationStrategy" data-i18n="s9IterLabel">Iteration Strategy</label>
@@ -868,6 +1063,7 @@ body.light .app-header h1 span { opacity: 0.55; }
 
     <label for="improvementFocus" data-i18n="s9FocusLabel">What should improve with each iteration?</label>
     <textarea id="improvementFocus" data-ph="s9FocusPh" placeholder="e.g. Accuracy of claims, completeness of coverage, specificity of recommendations, clarity of presentation" oninput="updatePreview()"></textarea>
+    </div>
   </div>
 
   </div><!-- /advancedBuilder -->
@@ -893,6 +1089,7 @@ body.light .app-header h1 span { opacity: 0.55; }
       </div>
     </div>
   </div>
+  <div class="quality-tips" id="qualityTips" style="display:none;"></div>
 
   <div class="tabs">
     <div class="tab active" onclick="switchTab(this, 'formatted')">Formatted</div>
@@ -1002,6 +1199,34 @@ body.light .app-header h1 span { opacity: 0.55; }
   </div>
 </div>
 
+<div class="modal-overlay" id="modalChain" onclick="if(event.target===this)closeModal('modalChain')">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>🔗 <span data-i18n="chainTitle">Prompt Chains</span></h3>
+      <button class="modal-close" onclick="closeModal('modalChain')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.82rem;color:var(--text2);margin-bottom:10px;" data-i18n="chainDesc">Link saved prompts into a sequence. Each step's output feeds the next via {{prev_output}}. Trammel generates the chain artifact — your agent executes it.</p>
+      <label style="display:block;margin-bottom:6px;font-size:0.85rem;" data-i18n="chainNameLabel">Chain name</label>
+      <input type="text" id="chainName" class="import-area" style="min-height:0;height:38px;margin-bottom:12px;" placeholder="My chain..." data-ph="chainNamePh">
+      <div style="font-size:0.85rem;margin-bottom:6px;" data-i18n="chainStepsLabel">Steps (in order)</div>
+      <div id="chainSteps" style="margin-bottom:12px;"></div>
+      <div style="font-size:0.85rem;margin-bottom:6px;" data-i18n="chainAddLabel">Add from Library</div>
+      <div id="chainLibList" style="margin-bottom:12px;"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+        <button class="btn btn-primary" onclick="saveChain()"><span data-i18n="chainSave">💾 Save Chain</span></button>
+        <button class="btn btn-success" onclick="exportChain('md')">⬇️ .md</button>
+        <button class="btn btn-success" onclick="exportChain('json')">⬇️ .json</button>
+      </div>
+      <div style="font-size:0.85rem;margin-bottom:6px;" data-i18n="chainSavedLabel">Saved chains</div>
+      <div id="chainSavedList"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('modalChain')"><span data-i18n="modalClose">Close</span></button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1011,6 +1236,10 @@ body.light .app-header h1 span { opacity: 0.55; }
 const I18N = {
   en: {
     headerSub: "— Trace the arc from idea to execution",
+    lenBrief: "Brief (<500 words)",
+    lenModerate: "Moderate (500-1500 words)",
+    lenComprehensive: "Comprehensive (1500-3000 words)",
+    lenUnlimited: "No length limit",
     btnReset: "🔄 Reset",
     btnTemplate: "📋 Template",
     btnCopy: "Copy Prompt",
@@ -1120,6 +1349,12 @@ const I18N = {
     // Preview
     prevTitle: "📝 Generated Prompt",
     qComplete: "Complete", qSpecificity: "Specificity", qTokens: "~Tokens",
+    copyFailed: "Copy failed — select the text and copy manually",
+    qTipVerb: "Start your objective with an action verb (analyze, build, write...)",
+    qTipMeasure: "Make success criteria measurable: add numbers or quantities",
+    qTipVague: "Replace vague words (stuff, things, etc) with specifics",
+    qTipScope: "Define both what's IN scope and what's OUT of scope",
+    qTipSubtasks: "Break the task into sub-tasks for better results",
     emptyMain: "Fill in the form to generate your structured prompt",
     emptySub: "The prompt updates live as you type",
     emptyMd: "Markdown output appears here",
@@ -1161,6 +1396,16 @@ const I18N = {
     libConfirmClear: "Delete the entire library? This cannot be undone.",
     libConfirmDel: "Delete this prompt and all its versions?",
     verLoad: "Load", verLabel: "v",
+    btnChain: "🔗 Chain",
+    chainTitle: "Prompt Chains",
+    chainDesc: "Link saved prompts into a sequence. Each step's output feeds the next via {{prev_output}}. Trammel generates the chain artifact — your agent executes it.",
+    chainNameLabel: "Chain name", chainNamePh: "My chain...",
+    chainStepsLabel: "Steps (in order)", chainAddLabel: "Add from Library",
+    chainSave: "💾 Save Chain", chainSavedLabel: "Saved chains",
+    chainNoSteps: "No steps yet. Add prompts from your Library below.",
+    chainAdd: "+ Add", chainNoSaved: "No saved chains yet.",
+    chainNeedName: "Name the chain first", chainNeedSteps: "A chain needs at least 2 steps",
+    chainSaved: "Chain saved", chainConfirmDel: "Delete this chain?",
     tplTitle: "Templates",
     expTitle: "Export / Import", expDesc: "Download the current prompt, or paste JSON below to import.",
     expImportLabel: "Import from JSON", expImportPh: "Paste a Trammel PE JSON here...",
@@ -1175,8 +1420,28 @@ const I18N = {
     tplSecurityAudit: "Security Audit", tplSecurityAuditDesc: "Audit an app for vulnerabilities and recommend fixes.",
     tplCompetitive: "Competitive Analysis", tplCompetitiveDesc: "Map competitors, positioning, and strategic gaps.",
     tplUse: "Use",
+// UX improvement keys
+    mobileTabForm: "📝 Form",
+    mobileTabPreview: "👁️ Preview",
+    autosaveLabel: "Auto-saved",
+    shortcutsHint: "⌨️ Ctrl+S Save · Ctrl+1-9 Sections",
+    shortcutsTitle: "⌨️ Keyboard Shortcuts",
+    scSave: "Save draft",
+    scCopy: "Copy prompt",
+    scJump: "Jump to section",
+    scCollapse: "Toggle section",
+    scExpandAll: "Expand all sections",
+    scCollapseAll: "Collapse all sections",
+    onboardTitle: "👋 Welcome to Trammel PE!",
+    onboardDesc: "Build structured, copy-ready prompts for any AI agent in 9 steps. No more guessing — trace the arc from idea to execution.",
+    onboardStep1: "Start with your Objective — what do you want the AI to do?",
+    onboardStep2: "Define scope, tools, and task breakdown",
+    onboardStep3: "Set role, output format, and constraints",
+    onboardStep4: "Copy the generated prompt → paste into any LLM",
+    onboardStart: "🚀 Start Building",
+    onboardTemplate: "📋 Use Template",
 
-    // V2 Quick Builder keys
+// V2 Quick Builder keys
     quickModeBtn: "⚡ Quick Builder", advancedModeBtn: "🛠️ Advanced Builder",
     quickKicker: "Quick start", quickTitle: "Describe it once. Get a structured prompt.",
     quickSubtitle: "Type a rough idea, tap a few options, and Trammel writes the full prompt for you.",
@@ -1198,6 +1463,10 @@ const I18N = {
   },
   es: {
     headerSub: "— Traza el arco de la idea a la ejecución",
+    lenBrief: "Breve (<500 palabras)",
+    lenModerate: "Moderado (500-1500 palabras)",
+    lenComprehensive: "Comprensivo (1500-3000 palabras)",
+    lenUnlimited: "Sin límite",
     btnReset: "🔄 Limpiar",
     btnTemplate: "📋 Plantilla",
     btnCopy: "Copiar Prompt",
@@ -1291,6 +1560,12 @@ const I18N = {
     s9FocusPh: "ej. Precisión de afirmaciones, completitud de cobertura, especificidad de recomendaciones, claridad de presentación",
     prevTitle: "📝 Prompt Generado",
     qComplete: "Completo", qSpecificity: "Especificidad", qTokens: "~Tokens",
+    copyFailed: "Falló el copiado — selecciona el texto y cópialo manualmente",
+    qTipVerb: "Empieza tu objetivo con un verbo de acción (analiza, construye, escribe...)",
+    qTipMeasure: "Haz los criterios de éxito medibles: añade números o cantidades",
+    qTipVague: "Reemplaza palabras vagas (cosas, algo, etc) con detalles específicos",
+    qTipScope: "Define qué está DENTRO y qué está FUERA del alcance",
+    qTipSubtasks: "Divide la tarea en subtareas para mejores resultados",
     emptyMain: "Llena el formulario para generar tu prompt estructurado",
     emptySub: "El prompt se actualiza en vivo mientras escribes",
     emptyMd: "La salida en Markdown aparece aquí",
@@ -1330,6 +1605,16 @@ const I18N = {
     libConfirmClear: "¿Borrar toda la biblioteca? Esto no se puede deshacer.",
     libConfirmDel: "¿Borrar este prompt y todas sus versiones?",
     verLoad: "Cargar", verLabel: "v",
+    btnChain: "🔗 Cadena",
+    chainTitle: "Cadenas de Prompts",
+    chainDesc: "Enlaza prompts guardados en secuencia. El output de cada paso alimenta el siguiente vía {{prev_output}}. Trammel genera el artefacto de cadena — tu agente lo ejecuta.",
+    chainNameLabel: "Nombre de la cadena", chainNamePh: "Mi cadena...",
+    chainStepsLabel: "Pasos (en orden)", chainAddLabel: "Agregar desde Biblioteca",
+    chainSave: "💾 Guardar Cadena", chainSavedLabel: "Cadenas guardadas",
+    chainNoSteps: "Sin pasos aún. Agrega prompts de tu Biblioteca abajo.",
+    chainAdd: "+ Agregar", chainNoSaved: "No hay cadenas guardadas aún.",
+    chainNeedName: "Nombra la cadena primero", chainNeedSteps: "Una cadena necesita al menos 2 pasos",
+    chainSaved: "Cadena guardada", chainConfirmDel: "¿Borrar esta cadena?",
     tplTitle: "Plantillas",
     expTitle: "Exportar / Importar", expDesc: "Descarga el prompt actual, o pega JSON abajo para importar.",
     expImportLabel: "Importar desde JSON", expImportPh: "Pega un JSON de Trammel PE aquí...",
@@ -1344,8 +1629,28 @@ const I18N = {
     tplSecurityAudit: "Auditoría de Seguridad", tplSecurityAuditDesc: "Audita una app por vulnerabilidades y recomienda arreglos.",
     tplCompetitive: "Análisis Competitivo", tplCompetitiveDesc: "Mapea competidores, posicionamiento y brechas estratégicas.",
     tplUse: "Usar",
+// UX improvement keys
+    mobileTabForm: "📝 Formulario",
+    mobileTabPreview: "👁️ Vista Previa",
+    autosaveLabel: "Auto-guardado",
+    shortcutsHint: "⌨️ Ctrl+S Guardar · Ctrl+1-9 Secciones",
+    shortcutsTitle: "⌨️ Atajos de Teclado",
+    scSave: "Guardar borrador",
+    scCopy: "Copiar prompt",
+    scJump: "Ir a sección",
+    scCollapse: "Plegar/desplegar sección",
+    scExpandAll: "Expandir todas las secciones",
+    scCollapseAll: "Colapsar todas las secciones",
+    onboardTitle: "👋 ¡Bienvenido a Trammel PE!",
+    onboardDesc: "Construye prompts estructurados y listos para copiar para cualquier agente de IA en 9 pasos. Sin más adivinanzas — traza el arco de la idea a la ejecución.",
+    onboardStep1: "Empieza con tu Objetivo — ¿qué quieres que haga la IA?",
+    onboardStep2: "Define alcance, herramientas y descomposición de tareas",
+    onboardStep3: "Configura rol, formato de salida y restricciones",
+    onboardStep4: "Copia el prompt generado → pégalo en cualquier LLM",
+    onboardStart: "🚀 Empezar",
+    onboardTemplate: "📋 Usar Plantilla",
 
-    // V2 Quick Builder keys
+// V2 Quick Builder keys
     quickModeBtn: "⚡ Quick Builder", advancedModeBtn: "🛠️ Builder Avanzado",
     quickKicker: "Inicio rápido", quickTitle: "Descríbelo una vez. Recibe un prompt estructurado.",
     quickSubtitle: "Escribe una idea aproximada, marca unas opciones y Trammel redacta el prompt completo por ti.",
@@ -1367,6 +1672,10 @@ const I18N = {
   },
   pt: {
     headerSub: "— Traça o arco da ideia à execução",
+    lenBrief: "Breve (<500 palavras)",
+    lenModerate: "Moderado (500-1500 palavras)",
+    lenComprehensive: "Abrangente (1500-3000 palavras)",
+    lenUnlimited: "Sem limite",
     btnReset: "🔄 Limpar",
     btnTemplate: "📋 Template",
     btnCopy: "Copiar Prompt",
@@ -1460,6 +1769,12 @@ const I18N = {
     s9FocusPh: "ex. Precisão de afirmações, completude de cobertura, especificidade de recomendações, clareza de apresentação",
     prevTitle: "📝 Prompt Gerado",
     qComplete: "Completo", qSpecificity: "Especificidade", qTokens: "~Tokens",
+    copyFailed: "Falha ao copiar — selecione o texto e copie manualmente",
+    qTipVerb: "Comece seu objetivo com um verbo de ação (analise, construa, escreva...)",
+    qTipMeasure: "Torne os critérios de sucesso mensuráveis: adicione números ou quantidades",
+    qTipVague: "Substitua palavras vagas (coisas, algo, etc) por detalhes específicos",
+    qTipScope: "Defina o que está DENTRO e o que está FORA do escopo",
+    qTipSubtasks: "Divida a tarefa em subtarefas para melhores resultados",
     emptyMain: "Preencha o formulário para gerar seu prompt estruturado",
     emptySub: "O prompt é atualizado ao vivo enquanto você digita",
     emptyMd: "A saída em Markdown aparece aqui",
@@ -1499,6 +1814,16 @@ const I18N = {
     libConfirmClear: "Excluir toda a biblioteca? Isso não pode ser desfeito.",
     libConfirmDel: "Excluir este prompt e todas as suas versões?",
     verLoad: "Carregar", verLabel: "v",
+    btnChain: "🔗 Cadeia",
+    chainTitle: "Cadeias de Prompts",
+    chainDesc: "Conecte prompts salvos em sequência. A saída de cada etapa alimenta a próxima via {{prev_output}}. Trammel gera o artefato da cadeia — seu agente o executa.",
+    chainNameLabel: "Nome da cadeia", chainNamePh: "Minha cadeia...",
+    chainStepsLabel: "Etapas (em ordem)", chainAddLabel: "Adicionar da Biblioteca",
+    chainSave: "💾 Salvar Cadeia", chainSavedLabel: "Cadeias salvas",
+    chainNoSteps: "Sem etapas ainda. Adicione prompts da sua Biblioteca abaixo.",
+    chainAdd: "+ Adicionar", chainNoSaved: "Nenhuma cadeia salva ainda.",
+    chainNeedName: "Nomeie a cadeia primeiro", chainNeedSteps: "Uma cadeia precisa de pelo menos 2 etapas",
+    chainSaved: "Cadeia salva", chainConfirmDel: "Excluir esta cadeia?",
     tplTitle: "Modelos",
     expTitle: "Exportar / Importar", expDesc: "Baixe o prompt atual, ou cole JSON abaixo para importar.",
     expImportLabel: "Importar de JSON", expImportPh: "Cole um JSON do Trammel PE aqui...",
@@ -1513,8 +1838,28 @@ const I18N = {
     tplSecurityAudit: "Auditoria de Segurança", tplSecurityAuditDesc: "Audite um app por vulnerabilidades e recomende correções.",
     tplCompetitive: "Análise Competitiva", tplCompetitiveDesc: "Mapeie concorrentes, posicionamento e lacunas estratégicas.",
     tplUse: "Usar",
+// UX improvement keys
+    mobileTabForm: "📝 Formulário",
+    mobileTabPreview: "👁️ Pré-visualização",
+    autosaveLabel: "Auto-salvo",
+    shortcutsHint: "⌨️ Ctrl+S Salvar · Ctrl+1-9 Seções",
+    shortcutsTitle: "⌨️ Atalhos de Teclado",
+    scSave: "Salvar rascunho",
+    scCopy: "Copiar prompt",
+    scJump: "Ir para seção",
+    scCollapse: "Expandir/colapsar seção",
+    scExpandAll: "Expandir todas as seções",
+    scCollapseAll: "Colapsar todas as seções",
+    onboardTitle: "👋 Bem-vindo ao Trammel PE!",
+    onboardDesc: "Construa prompts estruturados e prontos para copiar para qualquer agente de IA em 9 passos. Sem mais adivinhações — trace o arco da ideia à execução.",
+    onboardStep1: "Comece com seu Objetivo — o que você quer que a IA faça?",
+    onboardStep2: "Defina escopo, ferramentas e decomposição de tarefas",
+    onboardStep3: "Configure papel, formato de saída e restrições",
+    onboardStep4: "Copie o prompt gerado → cole em qualquer LLM",
+    onboardStart: "🚀 Começar",
+    onboardTemplate: "📋 Usar Template",
 
-    // V2 Quick Builder keys
+// V2 Quick Builder keys
     quickModeBtn: "⚡ Quick Builder", advancedModeBtn: "🛠️ Builder Avançado",
     quickKicker: "Início rápido", quickTitle: "Descreva uma vez. Receba um prompt estruturado.",
     quickSubtitle: "Digite uma ideia aproximada, toque em algumas opções e o Trammel redige o prompt completo para você.",
@@ -1544,13 +1889,15 @@ let subtaskCounter = 1;
 let currentLang = 'en';
 
 function t(key) {
-  return I18N[currentLang][key] || I18N['en'][key] || key;
+  return I18N[currentLang]?.[key] || I18N['en']?.[key] || key;
 }
 
+const _langChangeHooks = [];
 function changeLang(lang) {
   currentLang = lang;
   applyLang();
   updatePreview();
+  _langChangeHooks.forEach(fn => fn(lang));
 }
 
 function applyLang() {
@@ -1558,7 +1905,7 @@ function applyLang() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
     const val = t(key);
-    if (el.tagName === 'OPTION' || el.tagName === 'INPUT' && el.type !== 'text') {
+    if ((el.tagName === 'OPTION' || el.tagName === 'INPUT') && el.type !== 'text') {
       el.textContent = val;
     } else if (el.tagName === 'INPUT' && el.type === 'text') {
       // don't change value, only placeholder handled separately
@@ -1704,10 +2051,7 @@ function iterLabel(v) {
   return m[v] || v;
 }
 function lengthLabel(v) {
-  const m = { brief: currentLang==='es'?'Breve (<500 palabras)':currentLang==='pt'?'Breve (<500 palavras)':'Brief (<500 words)',
-    moderate: currentLang==='es'?'Moderado (500-1500 palabras)':currentLang==='pt'?'Moderado (500-1500 palavras)':'Moderate (500-1500 words)',
-    comprehensive: currentLang==='es'?'Comprensivo (1500-3000 palabras)':currentLang==='pt'?'Abrangente (1500-3000 palavras)':'Comprehensive (1500-3000 words)',
-    unlimited: currentLang==='es'?'Sin límite':currentLang==='pt'?'Sem limite':'No length limit' };
+  const m = { brief: t('lenBrief'), moderate: t('lenModerate'), comprehensive: t('lenComprehensive'), unlimited: t('lenUnlimited') };
   return m[v] || v;
 }
 
@@ -1812,16 +2156,52 @@ function buildJSON(d) {
 }
 
 // ============ QUALITY ============
+// ---- Quality Scoring v2: content heuristics, not just length ----
+const QS_ACTION_VERBS = /^(analyze|analiza|analise|build|construye|construa|write|escribe|escreva|create|crea|crie|design|dise|projete|review|revisa|revise|audit|audita|audite|summarize|resume|resuma|generate|genera|gere|develop|desarrolla|desenvolva|implement|implementa|implemente|evaluate|eval|avalie|compare|compara|research|investiga|pesquise|plan|planifica|planeje|debug|depura|depure|refactor|refactoriza|refatore|test|prueba|teste|document|documenta|documente|translate|traduce|traduza|optimize|optimiza|otimize|identify|identifica|identifique|extract|extrae|extraia|draft|redacta|rascunhe|fix|arregla|corrige|corrija|map|mapea|mapeie|define|definir?)/i;
+const QS_VAGUE_WORDS = /\b(etc\.?|stuff|things?|whatever|something|cosas?|algo|cualquier cosa|coisas?|algum[a]? coisa|qualquer coisa)\b/i;
+const QS_MEASURABLE = /\d+|\b(all|each|every|per|at least|at most|todos?|todas?|cada|al menos|como m[íi]nimo|m[áa]ximo|cada um|pelo menos|no m[áa]ximo)\b/i;
+
 function computeQuality(d) {
   const fields = [d.objective, d.successCriteria, d.inScope, d.outScope, d.role, d.background, d.constraints, d.mustDo];
   const filled = fields.filter(f => f && f.trim().length > 10).length;
   const completeness = Math.round((filled / fields.length) * 100);
+
+  // Specificity v2: base (filled detail fields) + content signals
   const specFields = [d.successCriteria, d.inScope, d.outScope, d.constraints, d.mustDo, d.edgeCases];
   const specFilled = specFields.filter(f => f && f.trim().length > 20).length;
-  const specificity = Math.round((specFilled / specFields.length) * 100);
+  let spec = (specFilled / specFields.length) * 60; // base: 60 pts
+
+  const tips = [];
+
+  // Signal 1: objective starts with an action verb (+10)
+  const verbOk = d.objective && QS_ACTION_VERBS.test(d.objective.trim());
+  if (verbOk) spec += 10;
+  else if (d.objective && d.objective.trim().length > 10) tips.push('qTipVerb');
+
+  // Signal 2: success criteria is measurable (+10)
+  const measurable = d.successCriteria && QS_MEASURABLE.test(d.successCriteria);
+  if (measurable) spec += 10;
+  else if (d.successCriteria && d.successCriteria.trim().length > 10) tips.push('qTipMeasure');
+
+  // Signal 3: no vague filler words (+5, penalty tip if found)
+  const vague = QS_VAGUE_WORDS.test((d.objective || '') + ' ' + (d.successCriteria || ''));
+  if (!vague) spec += 5;
+  else tips.push('qTipVague');
+
+  // Signal 4: scope balance — both IN and OUT defined (+10)
+  const scopeBalanced = d.inScope && d.inScope.trim().length > 10 && d.outScope && d.outScope.trim().length > 10;
+  if (scopeBalanced) spec += 10;
+  else if ((d.inScope && d.inScope.trim()) || (d.outScope && d.outScope.trim())) tips.push('qTipScope');
+
+  // Signal 5: at least one real subtask (+5)
+  const hasSubtasks = d.subtasks && d.subtasks.some(st => st.name && st.desc);
+  if (hasSubtasks) spec += 5;
+  else if (completeness >= 40) tips.push('qTipSubtasks');
+
+  const specificity = Math.min(100, Math.round(spec));
   const prompt = buildPrompt(d);
   const tokens = Math.round((prompt ? prompt.length : 0) / 4);
-  return { completeness, specificity, tokens };
+  return { completeness, specificity, tokens, tips: tips.slice(0, 3) };
 }
 
 function updateQualityBar(q) {
@@ -1834,6 +2214,16 @@ function updateQualityBar(q) {
   se.className = 'val ' + (q.specificity >= 70 ? 'good' : q.specificity >= 40 ? 'warn' : 'bad');
   te.textContent = q.tokens >= 1000 ? (q.tokens / 1000).toFixed(1) + 'k' : q.tokens;
   te.className = 'val good';
+  const tipsEl = document.getElementById('qualityTips');
+  if (tipsEl) {
+    if (q.tips && q.tips.length) {
+      tipsEl.innerHTML = q.tips.map(k => '<span class="q-tip">▸ ' + escapeHtml(t(k)) + '</span>').join('');
+      tipsEl.style.display = 'flex';
+    } else {
+      tipsEl.innerHTML = '';
+      tipsEl.style.display = 'none';
+    }
+  }
 }
 
 // ============ UPDATE PREVIEW ============
@@ -1847,7 +2237,8 @@ function updatePreview() {
     updateQualityBar({ completeness: 0, specificity: 0, tokens: 0 });
     return;
   }
-  const formatted = prompt
+  const safePrompt = escapeHtml(prompt);
+  const formatted = safePrompt
     .replace(/^# (.+)$/gm, '<span style="color:var(--accent);font-weight:700;font-size:1rem;">$1</span>')
     .replace(/^## (.+)$/gm, '<span style="color:var(--accent2);font-weight:600;font-size:0.9rem;">$1</span>')
     .replace(/^- (.+)$/gm, '<span style="color:var(--accent3);">•</span> $1');
@@ -1877,16 +2268,16 @@ function copyPrompt() {
   } else {
     content = prompt;
   }
-  navigator.clipboard.writeText(content).then(() => {
-    const btn = document.querySelector('.btn-primary');
-    const orig = btn.innerHTML;
-    btn.innerHTML = t('tplCopied');
-    setTimeout(() => { btn.innerHTML = orig; }, 2000);
-  }).catch(() => {
-    const ta = document.createElement('textarea');
-    ta.value = content; document.body.appendChild(ta); ta.select();
-    document.execCommand('copy'); document.body.removeChild(ta);
-  });
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(content).then(() => {
+      const btn = document.querySelector('.btn-primary');
+      const orig = btn.innerHTML;
+      btn.innerHTML = t('tplCopied');
+      setTimeout(() => { btn.innerHTML = orig; }, 2000);
+    }).catch(() => showToast(t('copyFailed')));
+  } else {
+    showToast(t('copyFailed'));
+  }
 }
 
 // ============ RESET ============
@@ -1904,6 +2295,7 @@ function resetAllSilent() {
   document.getElementById('toggleSelfLearn').classList.remove('on');
   document.getElementById('selfLearnSection').style.display = 'none';
   document.getElementById('domainCustom').style.display = 'none';
+  clearDraft();
   subtaskCounter = 1;
   const list = document.getElementById('subtaskList');
   list.innerHTML = `
@@ -2047,6 +2439,7 @@ function readLib() {
 }
 function writeLib(lib) {
   try { localStorage.setItem(LS_LIB, JSON.stringify(lib)); } catch (e) {}
+  if (typeof updateChainBtn === 'function') updateChainBtn();
 }
 
 function saveCurrent() {
@@ -2122,6 +2515,215 @@ function clearLibrary() {
   writeLib([]);
   renderLibrary();
   showToast(t('toastCleared'));
+}
+
+// ---------- PROMPT CHAINS (localStorage) ----------
+// Trammel GENERATES the chain artifact; it never executes anything.
+// Each step's output feeds the next step's {{prev_output}} placeholder.
+const LS_CHAINS = 'trammelpe_chains_v1';
+let chainDraft = { id: null, name: '', steps: [] }; // steps: [{libraryId, name}]
+
+function readChains() {
+  try { return JSON.parse(localStorage.getItem(LS_CHAINS) || '[]'); } catch (e) { return []; }
+}
+function writeChains(chains) {
+  try { localStorage.setItem(LS_CHAINS, JSON.stringify(chains)); } catch (e) {}
+}
+
+function updateChainBtn() {
+  const btn = document.getElementById('chainBtn');
+  if (!btn) return;
+  btn.style.display = (readLib().length >= 2 || readChains().length > 0) ? '' : 'none';
+}
+
+function openChains() {
+  renderChainEditor();
+  openModal('modalChain');
+}
+
+function renderChainEditor() {
+  const lib = readLib();
+  document.getElementById('chainName').value = chainDraft.name || '';
+  // Current steps
+  const stepsEl = document.getElementById('chainSteps');
+  if (!chainDraft.steps.length) {
+    stepsEl.innerHTML = `<div class="lib-empty">${t('chainNoSteps')}</div>`;
+  } else {
+    stepsEl.innerHTML = chainDraft.steps.map((s, i) => `
+      <div class="ver-row">
+        <span>${i + 1}. ${escapeHtml(s.name)}</span>
+        <span>
+          <button class="btn" ${i === 0 ? 'disabled' : ''} onclick="moveChainStep(${i},-1)" aria-label="Move up">↑</button>
+          <button class="btn" ${i === chainDraft.steps.length - 1 ? 'disabled' : ''} onclick="moveChainStep(${i},1)" aria-label="Move down">↓</button>
+          <button class="btn btn-danger" onclick="removeChainStep(${i})" aria-label="Remove step">✕</button>
+        </span>
+      </div>`).join('');
+  }
+  // Library candidates
+  const libEl = document.getElementById('chainLibList');
+  if (!lib.length) {
+    libEl.innerHTML = `<div class="lib-empty">${t('libEmpty')}</div>`;
+  } else {
+    libEl.innerHTML = lib.map(e => `
+      <div class="ver-row">
+        <span>${escapeHtml(e.name)}</span>
+        <button class="btn btn-success" onclick="addChainStep('${e.id}')">${t('chainAdd')}</button>
+      </div>`).join('');
+  }
+  // Saved chains
+  const savedEl = document.getElementById('chainSavedList');
+  const chains = readChains();
+  if (!chains.length) {
+    savedEl.innerHTML = `<div class="lib-empty">${t('chainNoSaved')}</div>`;
+  } else {
+    savedEl.innerHTML = chains.map(c => `
+      <div class="lib-item"><div class="lib-item-top">
+        <div>
+          <div class="lib-name">${escapeHtml(c.name)}</div>
+          <div class="lib-meta">${c.steps.length} ${t('chainStepsLabel').toLowerCase()} · ${new Date(c.updated).toLocaleString()}</div>
+        </div>
+        <div class="lib-actions">
+          <button class="btn btn-success" onclick="loadChain('${c.id}')">${t('libLoad')}</button>
+          <button class="btn btn-danger" onclick="deleteChain('${c.id}')">${t('libDel')}</button>
+        </div>
+      </div></div>`).join('');
+  }
+}
+
+function addChainStep(libraryId) {
+  const entry = readLib().find(e => e.id === libraryId);
+  if (!entry) return;
+  chainDraft.steps.push({ libraryId, name: entry.name });
+  renderChainEditor();
+}
+
+function removeChainStep(i) {
+  chainDraft.steps.splice(i, 1);
+  renderChainEditor();
+}
+
+function moveChainStep(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= chainDraft.steps.length) return;
+  [chainDraft.steps[i], chainDraft.steps[j]] = [chainDraft.steps[j], chainDraft.steps[i]];
+  renderChainEditor();
+}
+
+function saveChain() {
+  const name = document.getElementById('chainName').value.trim();
+  if (!name) { showToast(t('chainNeedName')); return; }
+  if (chainDraft.steps.length < 2) { showToast(t('chainNeedSteps')); return; }
+  const chains = readChains();
+  const now = Date.now();
+  if (chainDraft.id) {
+    const existing = chains.find(c => c.id === chainDraft.id);
+    if (existing) { existing.name = name; existing.steps = chainDraft.steps; existing.updated = now; }
+    else chains.unshift({ id: chainDraft.id, name, steps: chainDraft.steps, updated: now });
+  } else {
+    chainDraft.id = 'chain_' + now;
+    chains.unshift({ id: chainDraft.id, name, steps: chainDraft.steps, updated: now });
+  }
+  chainDraft.name = name;
+  writeChains(chains);
+  renderChainEditor();
+  updateChainBtn();
+  showToast(t('chainSaved'));
+}
+
+function loadChain(id) {
+  const c = readChains().find(x => x.id === id);
+  if (!c) return;
+  chainDraft = { id: c.id, name: c.name, steps: c.steps.map(s => ({ ...s })) };
+  renderChainEditor();
+  showToast(t('toastLoaded'));
+}
+
+function deleteChain(id) {
+  if (!confirm(t('chainConfirmDel'))) return;
+  writeChains(readChains().filter(c => c.id !== id));
+  if (chainDraft.id === id) chainDraft = { id: null, name: '', steps: [] };
+  renderChainEditor();
+  updateChainBtn();
+  showToast(t('toastDeleted'));
+}
+
+function resolveChainSteps() {
+  // Returns [{name, data, prompt}] using the LATEST version of each library entry.
+  const lib = readLib();
+  const resolved = [];
+  for (const s of chainDraft.steps) {
+    const entry = lib.find(e => e.id === s.libraryId);
+    if (!entry || !entry.versions.length) continue; // skip steps whose prompt was deleted
+    const latest = entry.versions[entry.versions.length - 1];
+    resolved.push({ name: entry.name, data: latest.data, prompt: latest.prompt });
+  }
+  return resolved;
+}
+
+function buildChainMarkdown(name, steps) {
+  const L = [];
+  L.push(`# 🔗 Prompt Chain: ${name}`);
+  L.push('');
+  L.push(`> ${steps.length}-step chain generated by Trammel PE. Execute the steps IN ORDER.`);
+  L.push('> Complete each step fully before starting the next. Wherever a step contains');
+  L.push('> the placeholder {{prev_output}}, substitute the complete output of the previous step.');
+  L.push('> Do not skip steps. Do not merge steps.');
+  steps.forEach((s, i) => {
+    L.push('');
+    L.push('---');
+    L.push('');
+    L.push(`## STEP ${i + 1} of ${steps.length}: ${s.name}`);
+    if (i > 0) {
+      L.push('');
+      L.push(`**Input:** the full output of Step ${i}. Use it as {{prev_output}} below.`);
+    }
+    L.push('');
+    L.push(s.prompt);
+    L.push('');
+    if (i < steps.length - 1) {
+      L.push(`**Stage gate:** Step ${i + 1} is complete only when its Success Criteria are met. Then proceed to Step ${i + 2} using this step's output as {{prev_output}}.`);
+    } else {
+      L.push('**Stage gate:** This is the final step. Deliver its output as the chain result.');
+    }
+  });
+  return L.join('\n');
+}
+
+function buildChainJSON(name, steps) {
+  return {
+    trammel_pe_chain: '1.0',
+    name,
+    execution: 'sequential',
+    piping: 'output of step N becomes {{prev_output}} in step N+1',
+    steps: steps.map((s, i) => ({
+      step: i + 1,
+      name: s.name,
+      receives_prev_output: i > 0,
+      data: s.data,
+      prompt: s.prompt,
+    })),
+  };
+}
+
+function exportChain(fmt) {
+  const name = document.getElementById('chainName').value.trim() || chainDraft.name || 'chain';
+  if (chainDraft.steps.length < 2) { showToast(t('chainNeedSteps')); return; }
+  const steps = resolveChainSteps();
+  if (steps.length < 2) { showToast(t('chainNeedSteps')); return; }
+  let content, mime, ext;
+  if (fmt === 'json') {
+    content = JSON.stringify(buildChainJSON(name, steps), null, 2); mime = 'application/json'; ext = 'json';
+  } else {
+    content = buildChainMarkdown(name, steps); mime = 'text/plain'; ext = 'md';
+  }
+  const slug = (name.slice(0, 40).replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '') || 'chain').toLowerCase();
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `trammel-chain-${slug}.${ext}`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast(t('toastDownloaded') + ' .' + ext);
 }
 
 function escapeHtml(s) {
@@ -2321,6 +2923,8 @@ function setBuilderMode(mode) {
   document.getElementById('advancedBuilder').style.display = quick ? 'none' : 'block';
   document.getElementById('quickModeBtn').classList.toggle('active', quick);
   document.getElementById('advancedModeBtn').classList.toggle('active', !quick);
+  document.getElementById('quickModeBtn').setAttribute('aria-selected', quick ? 'true' : 'false');
+  document.getElementById('advancedModeBtn').setAttribute('aria-selected', quick ? 'false' : 'true');
 }
 
 function selectUseCase(el, key) {
@@ -2498,16 +3102,14 @@ function askSmartQuestions() {
   showToast(t('toastQuestionsReady'));
 }
 
-// Regenerate Quick Builder output when the language changes, so generated content follows the selected language
-const _changeLangCore = changeLang;
-changeLang = function(lang) {
-  _changeLangCore(lang);
+// Regenerate Quick Builder output when the language changes
+_langChangeHooks.push(() => {
   const idea = document.getElementById('quickPrompt');
   const qb = document.getElementById('quickBuilder');
   if (idea && qb && idea.value.trim() && getComputedStyle(qb).display !== 'none' && document.getElementById('objective').value) {
     generateQuickPrompt(false);
   }
-};
+});
 
 // ---------- TEMPLATE LIBRARY DATA ----------
 const TEMPLATES = {
@@ -2604,9 +3206,432 @@ const TEMPLATES = {
   },
 };
 
+// ============================================================
+// UX: COLLAPSIBLE SECTIONS
+// ============================================================
+const SECTION_FIELDS = {
+  1: ['objective','successCriteria'],
+  2: ['inScope','outScope'],
+  3: ['customTools'], // tools are tracked separately
+  4: [], // subtasks, handled separately
+  5: ['role'],
+  6: ['customFormat'],
+  7: ['background','inputData','audience'],
+  8: ['constraints','mustDo','edgeCases'],
+  9: ['improvementFocus'],
+};
+
+const LS_COLLAPSED = 'trammelpe_collapsed_v1';
+const LS_DRAFT = 'trammelpe_draft_v1';
+const LS_ONBOARDED = 'trammelpe_onboarded_v1';
+
+function toggleSection(num) {
+  const body = document.getElementById('section-body-' + num);
+  const toggle = document.getElementById('toggle-' + num);
+  if (!body || !toggle) return;
+  const isCollapsed = body.classList.toggle('collapsed');
+  toggle.classList.toggle('collapsed', isCollapsed);
+  saveCollapsedState();
+}
+
+function saveCollapsedState() {
+  try {
+    const collapsed = [];
+    for (let i = 1; i <= 9; i++) {
+      const body = document.getElementById('section-body-' + i);
+      if (body && body.classList.contains('collapsed')) collapsed.push(i);
+    }
+    localStorage.setItem(LS_COLLAPSED, JSON.stringify(collapsed));
+  } catch(e) {}
+}
+
+function loadCollapsedState() {
+  try {
+    const collapsed = JSON.parse(localStorage.getItem(LS_COLLAPSED) || '[]');
+    collapsed.forEach(i => {
+      const body = document.getElementById('section-body-' + i);
+      const toggle = document.getElementById('toggle-' + i);
+      if (body) body.classList.add('collapsed');
+      if (toggle) toggle.classList.add('collapsed');
+    });
+  } catch(e) {}
+}
+
+function expandAllSections() {
+  for (let i = 1; i <= 9; i++) {
+    const body = document.getElementById('section-body-' + i);
+    const toggle = document.getElementById('toggle-' + i);
+    if (body) body.classList.remove('collapsed');
+    if (toggle) toggle.classList.remove('collapsed');
+  }
+  saveCollapsedState();
+}
+
+function collapseAllSections() {
+  for (let i = 1; i <= 9; i++) {
+    const body = document.getElementById('section-body-' + i);
+    const toggle = document.getElementById('toggle-' + i);
+    if (body) body.classList.add('collapsed');
+    if (toggle) toggle.classList.add('collapsed');
+  }
+  saveCollapsedState();
+}
+
+function scrollToSection(num) {
+  const sec = document.querySelector('[data-section="' + num + '"]');
+  if (sec) {
+    // Expand if collapsed
+    const body = document.getElementById('section-body-' + num);
+    const toggle = document.getElementById('toggle-' + num);
+    if (body && body.classList.contains('collapsed')) {
+      body.classList.remove('collapsed');
+      if (toggle) toggle.classList.remove('collapsed');
+      saveCollapsedState();
+    }
+    sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+// ============================================================
+// UX: SECTION COMPLETION BADGES
+// ============================================================
+function updateSectionBadges() {
+  for (let i = 1; i <= 9; i++) {
+    const badge = document.getElementById('badge-' + i);
+    if (!badge) continue;
+    const filled = isSectionFilled(i);
+    badge.classList.toggle('visible', filled);
+    // Also update progress dot
+    const dot = document.getElementById('dot-' + i);
+    if (dot) dot.classList.toggle('filled', filled);
+  }
+}
+
+function isSectionFilled(num) {
+  if (num === 3) {
+    // Tools section: check selected tools or custom tools text
+    return selectedTools.size > 0 || document.getElementById('customTools').value.trim().length > 5;
+  }
+  if (num === 4) {
+    // Subtasks: check if any subtask has content
+    const cards = document.querySelectorAll('.subtask-card');
+    for (const card of cards) {
+      const name = card.querySelector('.subtask-name')?.value?.trim() || '';
+      const desc = card.querySelector('.subtask-desc')?.value?.trim() || '';
+      if (name.length > 3 || desc.length > 10) return true;
+    }
+    return false;
+  }
+  if (num === 9) {
+    // Self-learning: check if section is visible and has content
+    const sec = document.getElementById('selfLearnSection');
+    if (sec && sec.style.display !== 'none') {
+      return document.getElementById('improvementFocus').value.trim().length > 10;
+    }
+    return false;
+  }
+  const fields = SECTION_FIELDS[num] || [];
+  for (const fid of fields) {
+    const el = document.getElementById(fid);
+    if (el && el.value.trim().length > 10) return true;
+  }
+  return false;
+}
+
+// ============================================================
+// UX: PROGRESS DOTS SIDEBAR
+// ============================================================
+const SECTION_NAMES = {
+  1: 's1Title', 2: 's2Title', 3: 's3Title', 4: 's4Title',
+  5: 's5Title', 6: 's6Title', 7: 's7Title', 8: 's8Title', 9: 's9Title',
+};
+
+function initProgressDots() {
+  const container = document.getElementById('progressDots');
+  if (!container) return;
+  let html = '';
+  for (let i = 1; i <= 9; i++) {
+    const label = t(SECTION_NAMES[i]).replace(/^[^\s]+\s/, '').substring(0, 30);
+    html += '<div class="progress-dot" id="dot-' + i + '" onclick="scrollToSection(' + i + ')" title="Section ' + i + '"><span class="dot-tooltip">' + escapeHtml(label) + '</span></div>';
+  }
+  container.innerHTML = html;
+}
+
+// ============================================================
+// UX: MOBILE TABS
+// ============================================================
+function switchMobileTab(tab) {
+  const formPanel = document.getElementById('formPanel');
+  const previewPanel = document.getElementById('previewPanel');
+  const tabForm = document.getElementById('mobileTabForm');
+  const tabPreview = document.getElementById('mobileTabPreview');
+  if (tab === 'form') {
+    formPanel.classList.remove('hidden-mobile');
+    previewPanel.classList.add('hidden-mobile');
+    tabForm.classList.add('active');
+    tabPreview.classList.remove('active');
+  } else {
+    formPanel.classList.add('hidden-mobile');
+    previewPanel.classList.remove('hidden-mobile');
+    tabForm.classList.remove('active');
+    tabPreview.classList.add('active');
+    updatePreview();
+  }
+}
+
+// ============================================================
+// UX: AUTO-SAVE DRAFT
+// ============================================================
+let autoSaveTimer = null;
+let lastDraftHash = '';
+
+function autoSaveDraft() {
+  try {
+    const data = gatherData();
+    const hash = JSON.stringify(data);
+    if (hash === lastDraftHash) return; // no change
+    lastDraftHash = hash;
+    localStorage.setItem(LS_DRAFT, hash);
+    // Show indicator briefly
+    const ind = document.getElementById('autosaveIndicator');
+    if (ind) {
+      ind.classList.add('show');
+      clearTimeout(ind._t);
+      ind._t = setTimeout(() => ind.classList.remove('show'), 2000);
+    }
+  } catch(e) {}
+}
+
+function loadDraft() {
+  try {
+    const raw = localStorage.getItem(LS_DRAFT);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (!data || !data.objective) return false;
+    applyData(data);
+    return true;
+  } catch(e) { return false; }
+}
+
+function clearDraft() {
+  try { localStorage.removeItem(LS_DRAFT); } catch(e) {}
+  lastDraftHash = '';
+}
+
+function startAutoSave() {
+  if (autoSaveTimer) clearInterval(autoSaveTimer);
+  autoSaveTimer = setInterval(autoSaveDraft, 5000);
+}
+
+// ============================================================
+// UX: ONBOARDING
+// ============================================================
+function showOnboarding() {
+  try {
+    const onboarded = localStorage.getItem(LS_ONBOARDED);
+    if (onboarded) return;
+  } catch(e) {}
+  document.getElementById('onboardingOverlay').classList.add('open');
+}
+
+function closeOnboarding() {
+  document.getElementById('onboardingOverlay').classList.remove('open');
+  try { localStorage.setItem(LS_ONBOARDED, '1'); } catch(e) {}
+}
+
+// ============================================================
+// UX: KEYBOARD SHORTCUTS
+// ============================================================
+function openShortcuts() {
+  document.getElementById('shortcutsModal').classList.add('open');
+}
+
+function closeShortcuts() {
+  document.getElementById('shortcutsModal').classList.remove('open');
+}
+
+function handleKeyboard(e) {
+  // Ctrl+S = Save draft
+  if ((e.ctrlKey || e.metaKey) && e.key === 's' && !e.shiftKey) {
+    e.preventDefault();
+    autoSaveDraft();
+    showToast(t('autosaveLabel'));
+    return;
+  }
+  // Ctrl+Shift+C = Copy prompt
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'C') {
+    e.preventDefault();
+    copyPrompt();
+    return;
+  }
+  // Ctrl+E = Expand all
+  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === 'e' || e.key === 'E')) {
+    e.preventDefault();
+    expandAllSections();
+    return;
+  }
+  // Ctrl+Shift+E = Collapse all
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'E' || e.key === 'e')) {
+    e.preventDefault();
+    collapseAllSections();
+    return;
+  }
+  // Ctrl+1-9 = Jump to section
+  if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey) {
+    const num = parseInt(e.key);
+    if (num >= 1 && num <= 9) {
+      e.preventDefault();
+      scrollToSection(num);
+      return;
+    }
+  }
+  // Alt+1-9 = Toggle section collapse
+  if (e.altKey && !(e.ctrlKey || e.metaKey) && !e.shiftKey) {
+    const num = parseInt(e.key);
+    if (num >= 1 && num <= 9) {
+      e.preventDefault();
+      toggleSection(num);
+      return;
+    }
+  }
+}
+
 // Initialize
 initTheme();
-updatePreview();
+initProgressDots();
+loadCollapsedState();
+
+// Try to restore draft (only if no objective set yet)
+if (!document.getElementById('objective').value.trim()) {
+  loadDraft();
+} else {
+  updatePreview();
+}
+
+updateSectionBadges();
+startAutoSave();
+
+// Listen for keyboard shortcuts
+document.addEventListener('keydown', handleKeyboard);
+
+// Update badges on every preview update
+const _origUpdatePreview = updatePreview;
+updatePreview = function() {
+  _origUpdatePreview();
+  updateSectionBadges();
+};
+
+// Show onboarding for first-time visitors
+showOnboarding();
+
+
+// ═══════════════════════════════════════════════════
+//  BOOST Tier 2 — 2026-06-09
+// ═══════════════════════════════════════════════════
+
+// GPT-style token estimator (weights CJK 1.5x, latin 0.25x, whitespace 0.2x)
+function estimateTokens(text) {
+  if (!text) return 0;
+  let tokens = 0;
+  for (let i = 0; i < text.length; i++) {
+    const code = text.charCodeAt(i);
+    if (code >= 0x4E00) tokens += 1.5;
+    else if ((code >= 65 && code <= 90) || (code >= 97 && code <= 122) || (code >= 48 && code <= 57)) tokens += 0.25;
+    else tokens += 0.2;
+  }
+  return Math.round(Math.max(tokens, text.length / 4));
+}
+
+// Override computeQuality to use new estimator
+(function() {
+  const _cq = computeQuality;
+  computeQuality = function(d) {
+    const r = _cq(d);
+    const prompt = buildPrompt(d);
+    r.tokens = estimateTokens(prompt || '');
+    return r;
+  };
+})();
+
+// {{var}} placeholder detection
+const PLACEHOLDER_RE = /\{\{([^}]+)\}\}/g;
+function extractPlaceholders(text) {
+  if (!text) return [];
+  return [...new Set([...text.matchAll(PLACEHOLDER_RE)].map(m => m[1].trim()))];
+}
+function collectAllPlaceholders() {
+  const fields = ['objective','domainCustom','role','successCriteria','inScope','outScope','constraints','mustDo','edgeCases','background','inputData','audience','customFormat','improvementFocus'];
+  const all = new Set();
+  fields.forEach(id => { const el = document.getElementById(id); if (el&&el.value) extractPlaceholders(el.value).forEach(v => all.add(v)); });
+  document.querySelectorAll('.subtask-name,.subtask-desc,.subtask-data').forEach(el => { if(el.value) extractPlaceholders(el.value).forEach(v => all.add(v)); });
+  return [...all];
+}
+
+// URL Share
+function shareViaURL() {
+  const d = gatherData();
+  if (!d.objective) { showToast(t('tplNoObj')); return; }
+  const compressed = btoa(encodeURIComponent(JSON.stringify(d)));
+  const url = location.origin + location.pathname + '#data=' + compressed;
+  navigator.clipboard.writeText(url).then(() => showToast('\u{1F517} URL copied!')).catch(() => showToast(t('copyFailed')));
+}
+function loadFromURL() {
+  const h = location.hash;
+  if (!h.startsWith('#data=')) return false;
+  try {
+    const o = JSON.parse(decodeURIComponent(atob(h.substring(6))));
+    applyData(o);
+    updatePreview();
+    showToast('\u{1F4E5} Prompt loaded from URL');
+    history.replaceState(null, '', location.pathname);
+    return true;
+  } catch(e) { return false; }
+}
+
+// Export PDF
+function exportPDF() {
+  const d = gatherData();
+  if (!d.objective) { showToast(t('tplNoObj')); return; }
+  const prompt = buildPrompt(d);
+  const w = window.open('', '_blank', 'width=800,height=600');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Trammel PE</title><style>body{font-family:system-ui;max-width:800px;margin:40px auto;padding:20px;color:#111;line-height:1.7;}</style></head><body><h1>Trammel PE \u2014 Prompt Export</h1><p><small>'+new Date().toISOString()+'</small></p><hr><pre style="white-space:pre-wrap;font-family:inherit;">'+escapeHtml(prompt)+'</pre></body></html>');
+  w.document.close();
+  setTimeout(() => w.print(), 500);
+}
+
+// Undo/Redo
+const undoStack = [], redoStack = [];
+const MAX_UNDO = 30;
+function pushUndo(label) {
+  const state = gatherData();
+  undoStack.push({label,state,ts:Date.now()});
+  if (undoStack.length>MAX_UNDO) undoStack.shift();
+  redoStack.length = 0;
+}
+function undo() {
+  if (undoStack.length===0) return;
+  redoStack.push({label:'redo',state:gatherData(),ts:Date.now()});
+  applyData(undoStack.pop().state);
+  updatePreview();
+  showToast('\u21A9 Undo');
+}
+function redo() {
+  if (redoStack.length===0) return;
+  undoStack.push({label:'redo',state:gatherData(),ts:Date.now()});
+  applyData(redoStack.pop().state);
+  updatePreview();
+  showToast('\u21AA Redo');
+}
+
+// Hook undo on field focus + try URL load on startup
+setTimeout(() => {
+  document.querySelectorAll('textarea,input[type="text"],select').forEach(el => {
+    el.addEventListener('focus', () => { if (el.value&&el.value.trim()) pushUndo(el.id||'edit'); });
+  });
+  loadFromURL();
+  updateChainBtn();
+}, 300);
+
 </script>
 </body>
 </html>

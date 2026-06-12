@@ -1,0 +1,66 @@
+{
+  "name": "trammel-pe",
+  "version": "0.1.0",
+  "description": "Trammel PE — Trace the arc from idea to execution. Generate structured, tool-aware prompts for any LLM agent.",
+  "type": "mcp-server",
+  "mcp": {
+    "server": {
+      "name": "trammel-pe",
+      "version": "0.1.0",
+      "description": "Generate structured, tool-aware prompts for any LLM agent using the Trammel PE framework. 9-section structured prompts with task decomposition, tool selection, self-learning loops, and 3-language support.",
+      "tools": [
+        {
+          "name": "generate_prompt",
+          "description": "Generate a structured, tool-aware prompt for any LLM agent using the Trammel PE framework. Returns a complete prompt with 9 sections: Objective, Role & Tone, Success Criteria, Scope, Tools, Task Decomposition, Context & Data, Output Format, Constraints, and optional Self-Learning Loop.",
+          "inputSchema": {
+            "type": "object",
+            "required": ["objective"],
+            "properties": {
+              "objective": {"type": "string", "description": "What you want the agent to do (verb-first, specific)"},
+              "domain": {"type": "string", "description": "Domain of expertise"},
+              "success_criteria": {"type": "string", "description": "What 'done' looks like"},
+              "in_scope": {"type": "string", "description": "What's included"},
+              "out_scope": {"type": "string", "description": "What's excluded"},
+              "depth": {"type": "string", "enum": ["quick", "standard", "deep", "expert"], "description": "Analysis depth"},
+              "role": {"type": "string", "description": "Who the AI should be"},
+              "tone": {"type": "string", "enum": ["professional", "concise", "academic", "creative", "conversational", "technical", "executive"], "description": "Output tone"},
+              "tools": {"type": "array", "items": {"type": "string"}, "description": "Tools the agent should use"},
+              "subtasks": {"type": "array", "items": {"type": "object"}, "description": "Task decomposition"},
+              "format_type": {"type": "string", "enum": ["markdown", "json", "table", "bulletlist", "narrative", "code", "mixed"], "description": "Output format"},
+              "length_target": {"type": "string", "enum": ["brief", "moderate", "comprehensive", "unlimited"], "description": "Target length"},
+              "must_do": {"type": "string", "description": "MUST DO rules"},
+              "constraints": {"type": "string", "description": "MUST NOT rules"},
+              "edge_cases": {"type": "string", "description": "Edge cases"},
+              "self_learn": {"type": "boolean", "description": "Enable self-learning loop"},
+              "lang": {"type": "string", "enum": ["en", "es", "pt"], "description": "Output language"}
+            }
+          }
+        },
+        {
+          "name": "generate_from_template",
+          "description": "Generate a prompt from a built-in template (competitive, data-analysis, content-writing, api-design, code-review, security-audit).",
+          "inputSchema": {
+            "type": "object",
+            "required": ["template_id"],
+            "properties": {
+              "template_id": {"type": "string", "enum": ["competitive", "data-analysis", "content-writing", "api-design", "code-review", "security-audit"]},
+              "objective": {"type": "string", "description": "Override template objective"},
+              "lang": {"type": "string", "enum": ["en", "es", "pt"]},
+              "output_format": {"type": "string", "enum": ["markdown", "json"]}
+            }
+          }
+        },
+        {
+          "name": "list_templates",
+          "description": "List available Trammel PE prompt templates with descriptions.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "lang": {"type": "string", "enum": ["en", "es", "pt"]}
+            }
+          }
+        }
+      ]
+    }
+  }
+}
