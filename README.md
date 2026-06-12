@@ -188,7 +188,7 @@ trammel-pe quick "Audit my API for error handling gaps" --domain "Software Engin
 trammel-pe-mcp          # stdio transport
 ```
 
-MCP exposes 3 tools: `generate_prompt` (full 9-section prompt), `generate_from_template`, and `list_templates`. See [`trammel-py/README.md`](trammel-py/README.md) for the Python API and MCP client config examples.
+MCP exposes 4 tools: `generate_prompt` (full 9-section prompt), `generate_from_template`, `list_templates`, and `generate_chain` (sequential prompt chain with `{{prev_output}}` piping). See [`trammel-py/README.md`](trammel-py/README.md) for the Python API and MCP client config examples.
 
 ## Output Formats
 
@@ -228,16 +228,16 @@ All PRs require Maintainer approval before merge. No direct pushes to `main`.
 - 📝 **More templates** — Data analysis, content writing, API design, security audit, project planning
 - 🧪 **Testing** — Browser compatibility, accessibility testing
 - 📖 **Documentation** — Tutorials, video walkthroughs, blog posts
-- 🔧 **Features** — Prompt chaining, customizable layouts, quality scoring improvements
+- 🔧 **Features** — Customizable layouts, more language packs
 
 ## Roadmap
 
 - [ ] More languages (FR, DE, JA, ZH, AR)
-- [ ] Prompt chaining (link multiple prompts)
 - [ ] Customizable UI layouts
-- [ ] Quality scoring algorithm improvements
 - [ ] Integration guides for OpenClaw, AutoGPT, CrewAI
 - [ ] Contributor evaluation system (professional background review)
+- [x] Prompt chaining (link multiple prompts) — chain saved prompts, export as Markdown mega-prompt with stage gates or JSON chain spec; `PromptChain` in the Python SDK and `generate_chain` MCP tool
+- [x] Quality scoring algorithm improvements (content heuristics + actionable tips, EN/ES/PT)
 - [x] Prompt versioning & history (localStorage)
 - [x] Export to file (.md, .json)
 - [x] Dark/light theme toggle
@@ -246,7 +246,7 @@ All PRs require Maintainer approval before merge. No direct pushes to `main`.
 - [x] Collapsible sections, auto-save, progress dots, mobile tabs, keyboard shortcuts, onboarding, completion badges
 - [x] Token estimator (GPT-style weighting), {{var}} placeholder detection, URL share, PDF export, undo/redo
 - [x] Python SDK + CLI (`trammel-py/`) — programmatic prompt generation
-- [x] MCP server for agent integration (stdio + HTTP, 3 tools)
+- [x] MCP server for agent integration (stdio + HTTP, 4 tools)
 
 ## License
 

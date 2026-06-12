@@ -730,6 +730,7 @@ body.light .mobile-tabs { background: var(--surface); }
     <button class="btn" onclick="saveCurrent()" title="Save / Guardar"><span data-i18n="btnSave">💾 Save</span></button>
     <button class="btn" onclick="openLibrary()" title="Library / Biblioteca"><span data-i18n="btnLibrary">📚 Library</span></button>
     <button class="btn" onclick="openExport()" title="Export / Exportar"><span data-i18n="btnExport">⬇️ Export</span></button>
+    <button class="btn" onclick="openChains()" id="chainBtn" title="Prompt Chains" style="display:none;"><span data-i18n="btnChain">🔗 Chain</span></button>
     <button class="btn" onclick="toggleTheme()" id="themeBtn" title="Theme / Tema" aria-label="Toggle dark/light theme">🌙</button>
     <button class="btn btn-primary" onclick="copyPrompt()">📋 <span data-i18n="btnCopy">Copy Prompt</span></button>
   </div>
@@ -1198,6 +1199,34 @@ body.light .mobile-tabs { background: var(--surface); }
   </div>
 </div>
 
+<div class="modal-overlay" id="modalChain" onclick="if(event.target===this)closeModal('modalChain')">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>🔗 <span data-i18n="chainTitle">Prompt Chains</span></h3>
+      <button class="modal-close" onclick="closeModal('modalChain')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.82rem;color:var(--text2);margin-bottom:10px;" data-i18n="chainDesc">Link saved prompts into a sequence. Each step's output feeds the next via {{prev_output}}. Trammel generates the chain artifact — your agent executes it.</p>
+      <label style="display:block;margin-bottom:6px;font-size:0.85rem;" data-i18n="chainNameLabel">Chain name</label>
+      <input type="text" id="chainName" class="import-area" style="min-height:0;height:38px;margin-bottom:12px;" placeholder="My chain..." data-ph="chainNamePh">
+      <div style="font-size:0.85rem;margin-bottom:6px;" data-i18n="chainStepsLabel">Steps (in order)</div>
+      <div id="chainSteps" style="margin-bottom:12px;"></div>
+      <div style="font-size:0.85rem;margin-bottom:6px;" data-i18n="chainAddLabel">Add from Library</div>
+      <div id="chainLibList" style="margin-bottom:12px;"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+        <button class="btn btn-primary" onclick="saveChain()"><span data-i18n="chainSave">💾 Save Chain</span></button>
+        <button class="btn btn-success" onclick="exportChain('md')">⬇️ .md</button>
+        <button class="btn btn-success" onclick="exportChain('json')">⬇️ .json</button>
+      </div>
+      <div style="font-size:0.85rem;margin-bottom:6px;" data-i18n="chainSavedLabel">Saved chains</div>
+      <div id="chainSavedList"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('modalChain')"><span data-i18n="modalClose">Close</span></button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1367,6 +1396,16 @@ const I18N = {
     libConfirmClear: "Delete the entire library? This cannot be undone.",
     libConfirmDel: "Delete this prompt and all its versions?",
     verLoad: "Load", verLabel: "v",
+    btnChain: "🔗 Chain",
+    chainTitle: "Prompt Chains",
+    chainDesc: "Link saved prompts into a sequence. Each step's output feeds the next via {{prev_output}}. Trammel generates the chain artifact — your agent executes it.",
+    chainNameLabel: "Chain name", chainNamePh: "My chain...",
+    chainStepsLabel: "Steps (in order)", chainAddLabel: "Add from Library",
+    chainSave: "💾 Save Chain", chainSavedLabel: "Saved chains",
+    chainNoSteps: "No steps yet. Add prompts from your Library below.",
+    chainAdd: "+ Add", chainNoSaved: "No saved chains yet.",
+    chainNeedName: "Name the chain first", chainNeedSteps: "A chain needs at least 2 steps",
+    chainSaved: "Chain saved", chainConfirmDel: "Delete this chain?",
     tplTitle: "Templates",
     expTitle: "Export / Import", expDesc: "Download the current prompt, or paste JSON below to import.",
     expImportLabel: "Import from JSON", expImportPh: "Paste a Trammel PE JSON here...",
@@ -1566,6 +1605,16 @@ const I18N = {
     libConfirmClear: "¿Borrar toda la biblioteca? Esto no se puede deshacer.",
     libConfirmDel: "¿Borrar este prompt y todas sus versiones?",
     verLoad: "Cargar", verLabel: "v",
+    btnChain: "🔗 Cadena",
+    chainTitle: "Cadenas de Prompts",
+    chainDesc: "Enlaza prompts guardados en secuencia. El output de cada paso alimenta el siguiente vía {{prev_output}}. Trammel genera el artefacto de cadena — tu agente lo ejecuta.",
+    chainNameLabel: "Nombre de la cadena", chainNamePh: "Mi cadena...",
+    chainStepsLabel: "Pasos (en orden)", chainAddLabel: "Agregar desde Biblioteca",
+    chainSave: "💾 Guardar Cadena", chainSavedLabel: "Cadenas guardadas",
+    chainNoSteps: "Sin pasos aún. Agrega prompts de tu Biblioteca abajo.",
+    chainAdd: "+ Agregar", chainNoSaved: "No hay cadenas guardadas aún.",
+    chainNeedName: "Nombra la cadena primero", chainNeedSteps: "Una cadena necesita al menos 2 pasos",
+    chainSaved: "Cadena guardada", chainConfirmDel: "¿Borrar esta cadena?",
     tplTitle: "Plantillas",
     expTitle: "Exportar / Importar", expDesc: "Descarga el prompt actual, o pega JSON abajo para importar.",
     expImportLabel: "Importar desde JSON", expImportPh: "Pega un JSON de Trammel PE aquí...",
@@ -1765,6 +1814,16 @@ const I18N = {
     libConfirmClear: "Excluir toda a biblioteca? Isso não pode ser desfeito.",
     libConfirmDel: "Excluir este prompt e todas as suas versões?",
     verLoad: "Carregar", verLabel: "v",
+    btnChain: "🔗 Cadeia",
+    chainTitle: "Cadeias de Prompts",
+    chainDesc: "Conecte prompts salvos em sequência. A saída de cada etapa alimenta a próxima via {{prev_output}}. Trammel gera o artefato da cadeia — seu agente o executa.",
+    chainNameLabel: "Nome da cadeia", chainNamePh: "Minha cadeia...",
+    chainStepsLabel: "Etapas (em ordem)", chainAddLabel: "Adicionar da Biblioteca",
+    chainSave: "💾 Salvar Cadeia", chainSavedLabel: "Cadeias salvas",
+    chainNoSteps: "Sem etapas ainda. Adicione prompts da sua Biblioteca abaixo.",
+    chainAdd: "+ Adicionar", chainNoSaved: "Nenhuma cadeia salva ainda.",
+    chainNeedName: "Nomeie a cadeia primeiro", chainNeedSteps: "Uma cadeia precisa de pelo menos 2 etapas",
+    chainSaved: "Cadeia salva", chainConfirmDel: "Excluir esta cadeia?",
     tplTitle: "Modelos",
     expTitle: "Exportar / Importar", expDesc: "Baixe o prompt atual, ou cole JSON abaixo para importar.",
     expImportLabel: "Importar de JSON", expImportPh: "Cole um JSON do Trammel PE aqui...",
@@ -2380,6 +2439,7 @@ function readLib() {
 }
 function writeLib(lib) {
   try { localStorage.setItem(LS_LIB, JSON.stringify(lib)); } catch (e) {}
+  if (typeof updateChainBtn === 'function') updateChainBtn();
 }
 
 function saveCurrent() {
@@ -2455,6 +2515,215 @@ function clearLibrary() {
   writeLib([]);
   renderLibrary();
   showToast(t('toastCleared'));
+}
+
+// ---------- PROMPT CHAINS (localStorage) ----------
+// Trammel GENERATES the chain artifact; it never executes anything.
+// Each step's output feeds the next step's {{prev_output}} placeholder.
+const LS_CHAINS = 'trammelpe_chains_v1';
+let chainDraft = { id: null, name: '', steps: [] }; // steps: [{libraryId, name}]
+
+function readChains() {
+  try { return JSON.parse(localStorage.getItem(LS_CHAINS) || '[]'); } catch (e) { return []; }
+}
+function writeChains(chains) {
+  try { localStorage.setItem(LS_CHAINS, JSON.stringify(chains)); } catch (e) {}
+}
+
+function updateChainBtn() {
+  const btn = document.getElementById('chainBtn');
+  if (!btn) return;
+  btn.style.display = (readLib().length >= 2 || readChains().length > 0) ? '' : 'none';
+}
+
+function openChains() {
+  renderChainEditor();
+  openModal('modalChain');
+}
+
+function renderChainEditor() {
+  const lib = readLib();
+  document.getElementById('chainName').value = chainDraft.name || '';
+  // Current steps
+  const stepsEl = document.getElementById('chainSteps');
+  if (!chainDraft.steps.length) {
+    stepsEl.innerHTML = `<div class="lib-empty">${t('chainNoSteps')}</div>`;
+  } else {
+    stepsEl.innerHTML = chainDraft.steps.map((s, i) => `
+      <div class="ver-row">
+        <span>${i + 1}. ${escapeHtml(s.name)}</span>
+        <span>
+          <button class="btn" ${i === 0 ? 'disabled' : ''} onclick="moveChainStep(${i},-1)" aria-label="Move up">↑</button>
+          <button class="btn" ${i === chainDraft.steps.length - 1 ? 'disabled' : ''} onclick="moveChainStep(${i},1)" aria-label="Move down">↓</button>
+          <button class="btn btn-danger" onclick="removeChainStep(${i})" aria-label="Remove step">✕</button>
+        </span>
+      </div>`).join('');
+  }
+  // Library candidates
+  const libEl = document.getElementById('chainLibList');
+  if (!lib.length) {
+    libEl.innerHTML = `<div class="lib-empty">${t('libEmpty')}</div>`;
+  } else {
+    libEl.innerHTML = lib.map(e => `
+      <div class="ver-row">
+        <span>${escapeHtml(e.name)}</span>
+        <button class="btn btn-success" onclick="addChainStep('${e.id}')">${t('chainAdd')}</button>
+      </div>`).join('');
+  }
+  // Saved chains
+  const savedEl = document.getElementById('chainSavedList');
+  const chains = readChains();
+  if (!chains.length) {
+    savedEl.innerHTML = `<div class="lib-empty">${t('chainNoSaved')}</div>`;
+  } else {
+    savedEl.innerHTML = chains.map(c => `
+      <div class="lib-item"><div class="lib-item-top">
+        <div>
+          <div class="lib-name">${escapeHtml(c.name)}</div>
+          <div class="lib-meta">${c.steps.length} ${t('chainStepsLabel').toLowerCase()} · ${new Date(c.updated).toLocaleString()}</div>
+        </div>
+        <div class="lib-actions">
+          <button class="btn btn-success" onclick="loadChain('${c.id}')">${t('libLoad')}</button>
+          <button class="btn btn-danger" onclick="deleteChain('${c.id}')">${t('libDel')}</button>
+        </div>
+      </div></div>`).join('');
+  }
+}
+
+function addChainStep(libraryId) {
+  const entry = readLib().find(e => e.id === libraryId);
+  if (!entry) return;
+  chainDraft.steps.push({ libraryId, name: entry.name });
+  renderChainEditor();
+}
+
+function removeChainStep(i) {
+  chainDraft.steps.splice(i, 1);
+  renderChainEditor();
+}
+
+function moveChainStep(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= chainDraft.steps.length) return;
+  [chainDraft.steps[i], chainDraft.steps[j]] = [chainDraft.steps[j], chainDraft.steps[i]];
+  renderChainEditor();
+}
+
+function saveChain() {
+  const name = document.getElementById('chainName').value.trim();
+  if (!name) { showToast(t('chainNeedName')); return; }
+  if (chainDraft.steps.length < 2) { showToast(t('chainNeedSteps')); return; }
+  const chains = readChains();
+  const now = Date.now();
+  if (chainDraft.id) {
+    const existing = chains.find(c => c.id === chainDraft.id);
+    if (existing) { existing.name = name; existing.steps = chainDraft.steps; existing.updated = now; }
+    else chains.unshift({ id: chainDraft.id, name, steps: chainDraft.steps, updated: now });
+  } else {
+    chainDraft.id = 'chain_' + now;
+    chains.unshift({ id: chainDraft.id, name, steps: chainDraft.steps, updated: now });
+  }
+  chainDraft.name = name;
+  writeChains(chains);
+  renderChainEditor();
+  updateChainBtn();
+  showToast(t('chainSaved'));
+}
+
+function loadChain(id) {
+  const c = readChains().find(x => x.id === id);
+  if (!c) return;
+  chainDraft = { id: c.id, name: c.name, steps: c.steps.map(s => ({ ...s })) };
+  renderChainEditor();
+  showToast(t('toastLoaded'));
+}
+
+function deleteChain(id) {
+  if (!confirm(t('chainConfirmDel'))) return;
+  writeChains(readChains().filter(c => c.id !== id));
+  if (chainDraft.id === id) chainDraft = { id: null, name: '', steps: [] };
+  renderChainEditor();
+  updateChainBtn();
+  showToast(t('toastDeleted'));
+}
+
+function resolveChainSteps() {
+  // Returns [{name, data, prompt}] using the LATEST version of each library entry.
+  const lib = readLib();
+  const resolved = [];
+  for (const s of chainDraft.steps) {
+    const entry = lib.find(e => e.id === s.libraryId);
+    if (!entry || !entry.versions.length) continue; // skip steps whose prompt was deleted
+    const latest = entry.versions[entry.versions.length - 1];
+    resolved.push({ name: entry.name, data: latest.data, prompt: latest.prompt });
+  }
+  return resolved;
+}
+
+function buildChainMarkdown(name, steps) {
+  const L = [];
+  L.push(`# 🔗 Prompt Chain: ${name}`);
+  L.push('');
+  L.push(`> ${steps.length}-step chain generated by Trammel PE. Execute the steps IN ORDER.`);
+  L.push('> Complete each step fully before starting the next. Wherever a step contains');
+  L.push('> the placeholder {{prev_output}}, substitute the complete output of the previous step.');
+  L.push('> Do not skip steps. Do not merge steps.');
+  steps.forEach((s, i) => {
+    L.push('');
+    L.push('---');
+    L.push('');
+    L.push(`## STEP ${i + 1} of ${steps.length}: ${s.name}`);
+    if (i > 0) {
+      L.push('');
+      L.push(`**Input:** the full output of Step ${i}. Use it as {{prev_output}} below.`);
+    }
+    L.push('');
+    L.push(s.prompt);
+    L.push('');
+    if (i < steps.length - 1) {
+      L.push(`**Stage gate:** Step ${i + 1} is complete only when its Success Criteria are met. Then proceed to Step ${i + 2} using this step's output as {{prev_output}}.`);
+    } else {
+      L.push('**Stage gate:** This is the final step. Deliver its output as the chain result.');
+    }
+  });
+  return L.join('\n');
+}
+
+function buildChainJSON(name, steps) {
+  return {
+    trammel_pe_chain: '1.0',
+    name,
+    execution: 'sequential',
+    piping: 'output of step N becomes {{prev_output}} in step N+1',
+    steps: steps.map((s, i) => ({
+      step: i + 1,
+      name: s.name,
+      receives_prev_output: i > 0,
+      data: s.data,
+      prompt: s.prompt,
+    })),
+  };
+}
+
+function exportChain(fmt) {
+  const name = document.getElementById('chainName').value.trim() || chainDraft.name || 'chain';
+  if (chainDraft.steps.length < 2) { showToast(t('chainNeedSteps')); return; }
+  const steps = resolveChainSteps();
+  if (steps.length < 2) { showToast(t('chainNeedSteps')); return; }
+  let content, mime, ext;
+  if (fmt === 'json') {
+    content = JSON.stringify(buildChainJSON(name, steps), null, 2); mime = 'application/json'; ext = 'json';
+  } else {
+    content = buildChainMarkdown(name, steps); mime = 'text/plain'; ext = 'md';
+  }
+  const slug = (name.slice(0, 40).replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '') || 'chain').toLowerCase();
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `trammel-chain-${slug}.${ext}`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast(t('toastDownloaded') + ' .' + ext);
 }
 
 function escapeHtml(s) {
@@ -3360,6 +3629,7 @@ setTimeout(() => {
     el.addEventListener('focus', () => { if (el.value&&el.value.trim()) pushUndo(el.id||'edit'); });
   });
   loadFromURL();
+  updateChainBtn();
 }, 300);
 
 </script>
