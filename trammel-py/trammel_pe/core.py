@@ -8,6 +8,7 @@ No browser, no dependencies — just structured prompts.
 from dataclasses import dataclass, field, asdict
 from typing import Optional
 import json
+import re
 
 # ── Language maps ──────────────────────────────────────────────────────────
 
@@ -366,6 +367,25 @@ TEMPLATES = {
 
 # ── Data model ─────────────────────────────────────────────────────────────
 
+# Quality Scoring v2 heuristics — keep in sync with computeQuality() in index.html
+_QS_ACTION_VERBS = re.compile(
+    r"^(analyze|analiza|analise|build|construye|construa|write|escribe|escreva"
+    r"|create|crea|crie|design|dise|projete|review|revisa|revise|audit|audita|audite"
+    r"|summarize|resume|resuma|generate|genera|gere|develop|desarrolla|desenvolva"
+    r"|implement|implementa|implemente|evaluate|eval|avalie|compare|compara"
+    r"|research|investiga|pesquise|plan|planifica|planeje|debug|depura|depure"
+    r"|refactor|refactoriza|refatore|test|prueba|teste|document|documenta|documente"
+    r"|translate|traduce|traduza|optimize|optimiza|otimize|identify|identifica|identifique"
+    r"|extract|extrae|extraia|draft|redacta|rascunhe|fix|arregla|corrige|corrija"
+    r"|map|mapea|mapeie|define|definir?)", re.IGNORECASE)
+_QS_VAGUE_WORDS = re.compile(
+    r"\b(etc\.?|stuff|things?|whatever|something|cosas?|algo|cualquier cosa"
+    r"|coisas?|alguma? coisa|qualquer coisa)\b", re.IGNORECASE)
+_QS_MEASURABLE = re.compile(
+    r"\d+|\b(all|each|every|per|at least|at most|todos?|todas?|cada|al menos"
+    r"|como m[íi]nimo|m[áa]ximo|cada um|pelo menos|no m[áa]ximo)\b", re.IGNORECASE)
+
+
 @dataclass
 class PromptData:
     """Structured input for Trammel PE prompt generation."""
@@ -405,6 +425,63 @@ class PromptData:
             elif isinstance(st, str):
                 normalized.append({"name": st, "desc": "", "data": ""})
         self.subtasks = normalized
+
+    def quality(self) -> dict:
+        """Quality Scoring v2 — mirrors computeQuality() in index.html.
+
+        Returns {completeness, specificity, tips} where tips are i18n keys
+        (qTipVerb, qTipMeasure, qTipVague, qTipScope, qTipSubtasks).
+        """
+        fields = [self.objective, self.success_criteria, self.in_scope,
+                  self.out_scope, self.role, self.background,
+                  self.constraints, self.must_do]
+        filled = sum(1 for f in fields if f and len(f.strip()) > 10)
+        completeness = round((filled / len(fields)) * 100)
+
+        spec_fields = [self.success_criteria, self.in_scope, self.out_scope,
+                       self.constraints, self.must_do, self.edge_cases]
+        spec_filled = sum(1 for f in spec_fields if f and len(f.strip()) > 20)
+        spec = (spec_filled / len(spec_fields)) * 60  # base: 60 pts
+
+        tips = []
+
+        # Signal 1: objective starts with an action verb (+10)
+        if self.objective and _QS_ACTION_VERBS.match(self.objective.strip()):
+            spec += 10
+        elif self.objective and len(self.objective.strip()) > 10:
+            tips.append("qTipVerb")
+
+        # Signal 2: success criteria is measurable (+10)
+        if self.success_criteria and _QS_MEASURABLE.search(self.success_criteria):
+            spec += 10
+        elif self.success_criteria and len(self.success_criteria.strip()) > 10:
+            tips.append("qTipMeasure")
+
+        # Signal 3: no vague filler words (+5)
+        if not _QS_VAGUE_WORDS.search((self.objective or "") + " " + (self.success_criteria or "")):
+            spec += 5
+        else:
+            tips.append("qTipVague")
+
+        # Signal 4: scope balance (+10)
+        in_ok = self.in_scope and len(self.in_scope.strip()) > 10
+        out_ok = self.out_scope and len(self.out_scope.strip()) > 10
+        if in_ok and out_ok:
+            spec += 10
+        elif (self.in_scope and self.in_scope.strip()) or (self.out_scope and self.out_scope.strip()):
+            tips.append("qTipScope")
+
+        # Signal 5: at least one real subtask (+5)
+        if any(st.get("name") and st.get("desc") for st in self.subtasks):
+            spec += 5
+        elif completeness >= 40:
+            tips.append("qTipSubtasks")
+
+        return {
+            "completeness": completeness,
+            "specificity": min(100, round(spec)),
+            "tips": tips[:3],
+        }
 
 
 # ── Tool name resolver ─────────────────────────────────────────────────────
@@ -699,3 +776,75 @@ class TrammelPE:
         if overrides:
             kwargs.update(overrides)
         return PromptData(**kwargs)
+
+class PromptChain:
+    """A sequence of prompts where each step's output feeds the next.
+
+    Mirrors the Prompt Chains feature in index.html (buildChainMarkdown /
+    buildChainJSON). Trammel generates the chain artifact; it never executes
+    anything — the consuming agent runs the chain.
+    """
+
+    def __init__(self, name: str, steps: list, lang: str = "en"):
+        """
+        Args:
+            name: Chain name.
+            steps: List of PromptData instances (>= 2).
+            lang: Language for generated prompts (en | es | pt).
+        """
+        if len(steps) < 2:
+            raise ValueError("A chain needs at least 2 steps")
+        for i, s in enumerate(steps):
+            if not isinstance(s, PromptData):
+                raise TypeError(f"steps[{i}] must be PromptData, got {type(s).__name__}")
+        self.name = name
+        self.steps = steps
+        self.lang = lang
+        self._engine = TrammelPE(lang=lang)
+
+    def _step_name(self, data: "PromptData", i: int) -> str:
+        return (data.objective or f"Step {i + 1}")[:60]
+
+    def to_markdown(self) -> str:
+        """Mega-prompt with stage gates — parity with buildChainMarkdown() in index.html."""
+        n = len(self.steps)
+        L = [
+            f"# \U0001F517 Prompt Chain: {self.name}",
+            "",
+            f"> {n}-step chain generated by Trammel PE. Execute the steps IN ORDER.",
+            "> Complete each step fully before starting the next. Wherever a step contains",
+            "> the placeholder {{prev_output}}, substitute the complete output of the previous step.",
+            "> Do not skip steps. Do not merge steps.",
+        ]
+        for i, data in enumerate(self.steps):
+            L += ["", "---", "", f"## STEP {i + 1} of {n}: {self._step_name(data, i)}"]
+            if i > 0:
+                L += ["", f"**Input:** the full output of Step {i}. Use it as {{{{prev_output}}}} below."]
+            L += ["", self._engine.generate_markdown(data), ""]
+            if i < n - 1:
+                L.append(
+                    f"**Stage gate:** Step {i + 1} is complete only when its Success Criteria are met. "
+                    f"Then proceed to Step {i + 2} using this step's output as {{{{prev_output}}}}."
+                )
+            else:
+                L.append("**Stage gate:** This is the final step. Deliver its output as the chain result.")
+        return "\n".join(L)
+
+    def to_json(self) -> dict:
+        """JSON chain spec — parity with buildChainJSON() in index.html."""
+        return {
+            "trammel_pe_chain": "1.0",
+            "name": self.name,
+            "execution": "sequential",
+            "piping": "output of step N becomes {{prev_output}} in step N+1",
+            "steps": [
+                {
+                    "step": i + 1,
+                    "name": self._step_name(data, i),
+                    "receives_prev_output": i > 0,
+                    "data": self._engine.generate_json(data),
+                    "prompt": self._engine.generate_markdown(data),
+                }
+                for i, data in enumerate(self.steps)
+            ],
+        }

@@ -10,12 +10,13 @@ Transport: stdio (for local agent integration)
 import json
 import sys
 import argparse
+import dataclasses
 from pathlib import Path
 
 # Add parent to path so we can import trammel_pe
 sys.path.insert(0, str(Path(__file__).parent))
 
-from trammel_pe.core import TrammelPE, PromptData, TEMPLATES
+from trammel_pe.core import TrammelPE, PromptData, PromptChain, TEMPLATES
 
 
 # ── MCP Protocol Implementation ────────────────────────────────────────────
@@ -206,6 +207,36 @@ def handle_tools_list() -> list:
                 },
             },
         },
+        {
+            "name": "generate_chain",
+            "description": "Generate a sequential prompt chain from a list of prompt configs. Each step's output feeds the next step via the {{prev_output}} placeholder. Returns a Markdown mega-prompt with stage gates, or a JSON chain spec. Trammel generates the artifact; the consuming agent executes the chain.",
+            "inputSchema": {
+                "type": "object",
+                "required": ["name", "steps"],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Chain name",
+                    },
+                    "steps": {
+                        "type": "array",
+                        "minItems": 2,
+                        "description": "Ordered list of prompt configs (same fields as generate_prompt: objective, role, success_criteria, in_scope, out_scope, etc.). Use {{prev_output}} in any field of steps 2+ to reference the previous step's output.",
+                        "items": {"type": "object"},
+                    },
+                    "lang": {
+                        "type": "string",
+                        "enum": ["en", "es", "pt"],
+                        "description": "Output language (default: en)",
+                    },
+                    "output_format": {
+                        "type": "string",
+                        "enum": ["markdown", "json"],
+                        "description": "Return format (default: markdown)",
+                    },
+                },
+            },
+        },
     ]
 
 
@@ -274,6 +305,30 @@ def handle_tool_call(name: str, arguments: dict) -> list:
                     obj = obj.get(lang, obj.get("en", ""))
                 lines.append(f"• {tid}: {obj}")
             return [{"type": "text", "text": "\n".join(lines)}]
+
+        elif name == "generate_chain":
+            chain_name = arguments.get("name", "")
+            raw_steps = arguments.get("steps", [])
+            lang = arguments.get("lang", "en")
+            if not chain_name:
+                return [{"type": "text", "text": "Error: 'name' is required"}]
+            if not isinstance(raw_steps, list) or len(raw_steps) < 2:
+                return [{"type": "text", "text": "Error: 'steps' must be a list with at least 2 prompt configs"}]
+            step_data = []
+            allowed = {f.name for f in dataclasses.fields(PromptData)}
+            for i, cfg in enumerate(raw_steps):
+                if not isinstance(cfg, dict) or not cfg.get("objective"):
+                    return [{"type": "text", "text": f"Error: steps[{i}] must be an object with at least an 'objective'"}]
+                cfg = dict(cfg)
+                cfg.setdefault("lang", lang)
+                step_data.append(PromptData(**{k: v for k, v in cfg.items() if k in allowed}))
+            chain = PromptChain(chain_name, step_data, lang=lang)
+            output_fmt = arguments.get("output_format", "markdown")
+            if output_fmt == "json":
+                result = json.dumps(chain.to_json(), indent=2, ensure_ascii=False)
+            else:
+                result = chain.to_markdown()
+            return [{"type": "text", "text": result}]
 
         else:
             return [{"type": "text", "text": f"Error: Unknown tool '{name}'"}]
