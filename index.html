@@ -720,7 +720,7 @@ body.light .mobile-tabs { background: var(--surface); }
     <button class="btn" onclick="saveCurrent()" title="Save / Guardar"><span data-i18n="btnSave">💾 Save</span></button>
     <button class="btn" onclick="openLibrary()" title="Library / Biblioteca"><span data-i18n="btnLibrary">📚 Library</span></button>
     <button class="btn" onclick="openExport()" title="Export / Exportar"><span data-i18n="btnExport">⬇️ Export</span></button>
-    <button class="btn" onclick="toggleTheme()" id="themeBtn" title="Theme / Tema">🌙</button>
+    <button class="btn" onclick="toggleTheme()" id="themeBtn" title="Theme / Tema" aria-label="Toggle dark/light theme">🌙</button>
     <button class="btn btn-primary" onclick="copyPrompt()">📋 <span data-i18n="btnCopy">Copy Prompt</span></button>
   </div>
 </div>
@@ -778,8 +778,8 @@ body.light .mobile-tabs { background: var(--surface); }
 
   <!-- V2: QUICK BUILDER DEFAULT -->
   <div class="mode-switch" role="tablist" aria-label="Builder mode">
-    <button class="btn active" id="quickModeBtn" onclick="setBuilderMode('quick')" data-i18n="quickModeBtn">⚡ Quick Builder</button>
-    <button class="btn" id="advancedModeBtn" onclick="setBuilderMode('advanced')" data-i18n="advancedModeBtn">🛠️ Advanced Builder</button>
+    <button class="btn active" id="quickModeBtn" role="tab" aria-selected="true" aria-controls="quickBuilder" onclick="setBuilderMode('quick')" data-i18n="quickModeBtn">⚡ Quick Builder</button>
+    <button class="btn" id="advancedModeBtn" role="tab" aria-selected="false" aria-controls="advancedBuilder" onclick="setBuilderMode('advanced')" data-i18n="advancedModeBtn">🛠️ Advanced Builder</button>
   </div>
 
   <div id="quickBuilder">
@@ -2579,6 +2579,8 @@ function setBuilderMode(mode) {
   document.getElementById('advancedBuilder').style.display = quick ? 'none' : 'block';
   document.getElementById('quickModeBtn').classList.toggle('active', quick);
   document.getElementById('advancedModeBtn').classList.toggle('active', !quick);
+  document.getElementById('quickModeBtn').setAttribute('aria-selected', quick ? 'true' : 'false');
+  document.getElementById('advancedModeBtn').setAttribute('aria-selected', quick ? 'false' : 'true');
 }
 
 function selectUseCase(el, key) {
