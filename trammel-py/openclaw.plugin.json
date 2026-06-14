@@ -1,13 +1,13 @@
 {
   "name": "trammel-pe",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Trammel PE — Trace the arc from idea to execution. Generate structured, tool-aware prompts for any LLM agent.",
   "type": "mcp-server",
   "mcp": {
     "server": {
       "name": "trammel-pe",
-      "version": "0.1.0",
-      "description": "Generate structured, tool-aware prompts for any LLM agent using the Trammel PE framework. 9-section structured prompts with task decomposition, tool selection, self-learning loops, and 3-language support.",
+      "version": "0.2.0",
+      "description": "Generate structured, tool-aware prompts for any LLM agent using the Trammel PE framework. 9-section structured prompts with task decomposition, tool selection, self-learning loops, prompt chaining, and 3-language support.",
       "tools": [
         {
           "name": "generate_prompt",
@@ -32,21 +32,23 @@
               "constraints": {"type": "string", "description": "MUST NOT rules"},
               "edge_cases": {"type": "string", "description": "Edge cases"},
               "self_learn": {"type": "boolean", "description": "Enable self-learning loop"},
+              "methodology": {"type": "string", "description": "Methodology preset: 'karpathy' for 4 Principles"},
               "lang": {"type": "string", "enum": ["en", "es", "pt"], "description": "Output language"}
             }
           }
         },
         {
           "name": "generate_from_template",
-          "description": "Generate a prompt from a built-in template (competitive, data-analysis, content-writing, api-design, code-review, security-audit).",
+          "description": "Generate a prompt from a built-in Trammel PE template. Templates: competitive, data-analysis, content-writing, api-design, code-review, security-audit. Optionally override objective and domain.",
           "inputSchema": {
             "type": "object",
-            "required": ["template_id"],
+            "required": ["template_id", "objective"],
             "properties": {
-              "template_id": {"type": "string", "enum": ["competitive", "data-analysis", "content-writing", "api-design", "code-review", "security-audit"]},
-              "objective": {"type": "string", "description": "Override template objective"},
-              "lang": {"type": "string", "enum": ["en", "es", "pt"]},
-              "output_format": {"type": "string", "enum": ["markdown", "json"]}
+              "template_id": {"type": "string", "enum": ["competitive", "data-analysis", "content-writing", "api-design", "code-review", "security-audit"], "description": "Template to use"},
+              "objective": {"type": "string", "description": "What you want the agent to do. REQUIRED."},
+              "domain": {"type": "string", "description": "Override template domain"},
+              "lang": {"type": "string", "enum": ["en", "es", "pt"], "description": "Output language"},
+              "methodology": {"type": "string", "description": "Methodology preset: 'karpathy' for 4 Principles"}
             }
           }
         },
@@ -56,7 +58,21 @@
           "inputSchema": {
             "type": "object",
             "properties": {
-              "lang": {"type": "string", "enum": ["en", "es", "pt"]}
+              "lang": {"type": "string", "enum": ["en", "es", "pt"], "description": "Language for descriptions"}
+            }
+          }
+        },
+        {
+          "name": "generate_chain",
+          "description": "Generate a sequential prompt chain from a list of prompt configs. Each step's output feeds the next step via the {{prev_output}} placeholder. Returns a Markdown mega-prompt with stage gates, or a JSON chain spec. Trammel generates the artifact; the consuming agent executes the chain.",
+          "inputSchema": {
+            "type": "object",
+            "required": ["name", "steps"],
+            "properties": {
+              "name": {"type": "string", "description": "Chain name"},
+              "steps": {"type": "array", "minItems": 2, "items": {"type": "object"}, "description": "Ordered list of prompt configs (same fields as generate_prompt). Use {{prev_output}} in steps 2+."},
+              "lang": {"type": "string", "enum": ["en", "es", "pt"], "description": "Output language"},
+              "output_format": {"type": "string", "enum": ["markdown", "json"], "description": "Return format (default: markdown)"}
             }
           }
         }
