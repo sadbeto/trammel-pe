@@ -215,5 +215,12 @@ def generate_chain(
 
 # ── Entry point ──────────────────────────────────────────────────────────────
 
-if __name__ == "__main__":
+
+
+def main():
+    """Entry point for the trammel-pe-mcp console script."""
     mcp.run(transport="stdio")
+
+
+if __name__ == "__main__":
+    main()

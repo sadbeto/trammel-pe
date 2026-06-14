@@ -7,7 +7,7 @@ Trace the arc from idea to execution.
 
 from .core import TrammelPE, PromptData, PromptChain, TEMPLATES
 from .cli import main as cli_main
-from .mcp_server import main as mcp_main
+from .mcp_server import mcp as mcp_server
 
 __version__ = "0.2.0"
-__all__ = ["TrammelPE", "PromptData", "PromptChain", "TEMPLATES", "cli_main", "mcp_main"]
+__all__ = ["TrammelPE", "PromptData", "PromptChain", "TEMPLATES", "cli_main", "mcp_server"]

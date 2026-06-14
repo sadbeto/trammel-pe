@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "trammel-pe"
-version = "0.1.0"
+version = "0.2.0"
 description = "Generate structured, tool-aware, self-improving prompts for any LLM agent"
 readme = "README.md"
 license = {text = "MIT"}
