@@ -128,25 +128,58 @@ Trammel PE synthesizes best practices from:
 
 ## Getting Started
 
-### Quick Start
+Trammel PE can be used in two ways:
+
+1. **Browser app** — the fastest path. Open `index.html` and use the visual prompt builder.
+2. **Developer / agent-native tools** — clone the full repo if you want the Python CLI, SDK, scripts, or MCP server.
+
+### Option 1: Browser App
+
+For most users, this is all you need:
 
 1. **Download** `index.html` from this repo
-2. **Open** it in any modern browser
-3. **Fill in** the form — start with Objective
-4. **Copy** the generated prompt and paste into any LLM
+2. **Open** it in Chrome, Edge, Firefox, Safari, or any modern browser
+3. **Build** your prompt with Quick Builder or Advanced Builder
+4. **Copy** the generated prompt into ChatGPT, Claude, Gemini, Cursor, Claude Code, or any LLM agent
 
 That's it. No install. No server. No API key.
 
-### From Source
+The browser app works on **Windows, macOS, and Linux**. Templates, prompt library, export/import, quality scoring, and language switching are built into `index.html`.
+
+**Python is optional.** Trammel PE works as a zero-install browser app; Python is only for developers who want the CLI, SDK, or MCP integration.
+
+### Option 2: Full Repo
+
+Clone the full repo if you want the complete project: browser app, scripts, Python SDK, CLI, and MCP server.
 
 ```bash
 git clone https://codeberg.org/JJSolutions/trammel-pe.git
 cd trammel-pe
-# Open index.html in your browser
+
+# Open the browser app
 open index.html       # macOS
 xdg-open index.html   # Linux
 start index.html      # Windows
 ```
+
+Use this option if you want to run Trammel PE from terminal, integrate it into scripts, or connect it to MCP-compatible tools.
+
+### Agent-Native Usage (Python SDK & MCP)
+
+The browser app does **not** require Python. Python is only needed for the CLI, SDK, and MCP server.
+
+```bash
+cd trammel-py
+pip install -e .
+
+# CLI
+trammel-pe quick "Audit my API for error handling gaps" --domain "Software Engineering"
+
+# MCP server (Claude Desktop, Cursor, OpenClaw, any MCP client)
+trammel-pe-mcp
+```
+
+MCP exposes 4 tools: `generate_prompt`, `generate_from_template`, `list_templates`, and `generate_chain`.
 
 ## How to Use
 
