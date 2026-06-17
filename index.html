@@ -802,6 +802,7 @@ body.light .mobile-tabs { background: var(--surface); }
       <div class="quick-toolbar">
         <button class="btn btn-primary" onclick="generateQuickPrompt()" data-i18n="quickGenerate">⚡ Build my prompt</button>
         <button class="btn" onclick="askSmartQuestions()" data-i18n="quickQuestions">❓ Ask me 3 questions</button>
+        <button class="btn btn-success" onclick="generateExamplesCommand()" data-i18n="quickExamples">✨ Generate examples</button>
         <button class="btn" onclick="clearQuick()" data-i18n="quickClear">Clear</button>
       </div>
     </div>
@@ -1446,7 +1447,7 @@ const I18N = {
     quickKicker: "Quick start", quickTitle: "Describe it once. Get a structured prompt.",
     quickSubtitle: "Type a rough idea, tap a few options, and Trammel writes the full prompt for you.",
     quickPromptPh: "e.g. I need to analyze my competitors and make a plan",
-    quickGenerate: "⚡ Build my prompt", quickQuestions: "❓ Ask me 3 questions", quickClear: "Clear",
+    quickGenerate: "⚡ Build my prompt", quickQuestions: "❓ Ask me 3 questions", quickExamples: "✨ Generate examples", quickClear: "Clear",
     quickUsecaseTitle: "Pick the job", quickToneTitle: "Tune it with clicks", quickDepthTitle: "Depth",
     quickOutputTitle: "Output", quickTargetTitle: "Target AI", quickGenerateBig: "⚡ Generate structured prompt",
     quickFineTune: "Fine tune in Advanced", advancedNote: "Advanced mode keeps the full 9-step framework for precision work.",
@@ -1655,7 +1656,7 @@ const I18N = {
     quickKicker: "Inicio rápido", quickTitle: "Descríbelo una vez. Recibe un prompt estructurado.",
     quickSubtitle: "Escribe una idea aproximada, marca unas opciones y Trammel redacta el prompt completo por ti.",
     quickPromptPh: "ej. necesito analizar mis competidores y crear un plan",
-    quickGenerate: "⚡ Crea mi prompt", quickQuestions: "❓ Hazme 3 preguntas", quickClear: "Limpiar",
+    quickGenerate: "⚡ Crea mi prompt", quickQuestions: "❓ Hazme 3 preguntas", quickExamples: "✨ Generar ejemplos", quickClear: "Limpiar",
     quickUsecaseTitle: "Escoge el trabajo", quickToneTitle: "Ajústalo con clicks", quickDepthTitle: "Profundidad",
     quickOutputTitle: "Salida", quickTargetTitle: "AI destino", quickGenerateBig: "⚡ Generar prompt estructurado",
     quickFineTune: "Ajustar en Avanzado", advancedNote: "El modo avanzado conserva el framework completo de 9 pasos para trabajos de precisión.",
@@ -1864,7 +1865,7 @@ const I18N = {
     quickKicker: "Início rápido", quickTitle: "Descreva uma vez. Receba um prompt estruturado.",
     quickSubtitle: "Digite uma ideia aproximada, toque em algumas opções e o Trammel redige o prompt completo para você.",
     quickPromptPh: "ex. preciso analisar meus concorrentes e criar um plano",
-    quickGenerate: "⚡ Criar meu prompt", quickQuestions: "❓ Faça 3 perguntas", quickClear: "Limpar",
+    quickGenerate: "⚡ Criar meu prompt", quickQuestions: "❓ Faça 3 perguntas", quickExamples: "✨ Gerar exemplos", quickClear: "Limpar",
     quickUsecaseTitle: "Escolha o trabalho", quickToneTitle: "Ajuste com cliques", quickDepthTitle: "Profundidade",
     quickOutputTitle: "Saída", quickTargetTitle: "AI destino", quickGenerateBig: "⚡ Gerar prompt estruturado",
     quickFineTune: "Ajustar no Avançado", advancedNote: "O modo avançado mantém o framework completo de 9 passos para trabalhos de precisão.",
@@ -3357,6 +3358,22 @@ function askSmartQuestions() {
   }).join('');
   panel.classList.add('open');
   showToast(t('toastQuestionsReady'));
+}
+
+function generateExamplesCommand() {
+  const lazyPrompt = document.getElementById('quickPrompt').value.trim();
+  const panel = document.getElementById('smartQuestions');
+  const inputs = panel.querySelectorAll('input[data-example-type]');
+  if (!inputs.length) {
+    askSmartQuestions();
+    return;
+  }
+  inputs.forEach(inp => {
+    const qType = inp.getAttribute('data-example-type');
+    const example = generateSmartExamples(lazyPrompt, qType, currentLang);
+    inp.placeholder = example;
+  });
+  showToast(currentLang === 'es' ? '✨ Ejemplos regenerados' : currentLang === 'pt' ? '✨ Exemplos regenerados' : '✨ Examples regenerated');
 }
 
 // Regenerate Quick Builder output when the language changes
