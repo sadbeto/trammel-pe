@@ -3086,7 +3086,254 @@ function generateQuickPrompt(showMsg = true) {
   if (showMsg) showToast(t('toastQuickReady'));
 }
 
+function generateSmartExamples(lazyPrompt, questionType, lang) {
+  const text = (lazyPrompt || '').toLowerCase();
+  const L = lang || currentLang;
+  const ex = SMART_EXAMPLES[L] || SMART_EXAMPLES.en;
+  
+  // Detect domain from keywords
+  const has = (...words) => words.some(w => text.includes(w));
+  let domain = 'general';
+  if (has('competidor', 'competitor', 'competitive', 'market', 'market', 'mercado')) domain = 'competitive';
+  else if (has('email', 'correo', 'mensaje', 'message')) domain = 'email';
+  else if (has('data', 'dataset', 'csv', 'excel', 'ventas', 'sales', 'analytics', 'analisis')) domain = 'data';
+  else if (has('code', 'codigo', 'review', 'pull request', 'pr ', 'bug', 'debug', 'refactor')) domain = 'code';
+  else if (has('blog', 'articulo', 'content', 'seo', 'post', 'redactar', 'escribir')) domain = 'content';
+  else if (has('api', 'rest', 'endpoint', 'backend')) domain = 'api';
+  else if (has('seguridad', 'security', 'vulnerabilidad', 'audit')) domain = 'security';
+  else if (has('producto', 'prd', 'feature', 'roadmap', 'product')) domain = 'product';
+  else if (has('investigacion', 'research', 'paper', 'estudio', 'sources')) domain = 'research';
+  
+  const d = ex[domain] || ex.general;
+  if (questionType === 'audience') return d.audience;
+  if (questionType === 'mustHave') return d.mustHave;
+  if (questionType === 'avoid') return d.avoid;
+  if (questionType === 'context') return d.context || d.audience;
+  if (questionType === 'constraints') return d.constraints || d.avoid;
+  return d.audience;
+}
+
+const SMART_EXAMPLES = {
+  es: {
+    general: {
+      audience: 'ej. Mi jefe de producto, que necesita una decisión rápida',
+      mustHave: 'ej. Máximo 3 opciones, cada una con pros/contras claros',
+      avoid: 'ej. Sin jerga técnica, sin suposiciones sin fundamento',
+      context: 'ej. Startup de 6 meses, 3 clientes enterprise, pitch Serie A',
+      constraints: 'ej. Máximo 500 palabras, tono profesional, sin filler'
+    },
+    competitive: {
+      audience: 'ej. Inversores Serie A que quieren entender el mercado en 5 minutos',
+      mustHave: 'ej. Matriz de posicionamiento, estimados de ingresos con fuentes, top 5 competidores',
+      avoid: 'ej. Especulación sin datos, opiniones sin respaldo, empresas sin revenue público',
+      context: 'ej. Nuestra startup usa GPT-4 para soporte; competimos en LATAM con empresas como Zendesk',
+      constraints: 'ej. Solo fuentes verificables de 2024-2025, sin análisis de mercados fuera de LATAM'
+    },
+    email: {
+      audience: 'ej. Cliente que lleva 2 semanas sin responder; necesito reconectar sin presionar',
+      mustHave: 'ej. Asunto irresistible, body de máximo 120 palabras, un solo CTA claro',
+      avoid: 'ej. Sonar desesperado, múltiples CTAs, jerga corporativa genérica',
+      context: 'ej. Tras 2 reuniones positivas, el prospecto se quedó en silencio; quiero reactivar',
+      constraints: 'ej. Tono amistoso pero profesional, mencionar valor específico de las reuniones previas'
+    },
+    data: {
+      audience: 'ej. Director de ventas que no es técnico; quiere insights accionables, no tablas crudas',
+      mustHave: 'ej. Top 3 drivers de revenue, correlación clara con visualización, recomendaciones priorizadas',
+      avoid: 'ej. Lenguaje estadístico sin explicación, gráficos sin ejes etiquetados, afirmaciones sin soporte',
+      context: 'ej. Dataset Q3-Q4 con columnas: cliente, MRR, churn_flag, tickets_soporte, plan, país',
+      constraints: 'ej. Asumir que faltan ~8% de registros; marcar limitaciones de los datos claramente'
+    },
+    code: {
+      audience: 'ej. Equipo de 3 devs junior que necesitan aprender del review, no solo recibir correcciones',
+      mustHave: 'ej. Referencias archivo:línea, severidad (bloqueante/mayor/menor), sugerencia de fix concreto',
+      avoid: 'ej. Solo "esto está mal" sin explicar por qué, cambios de estilo ya cubiertos por linter',
+      context: 'ej. PR que añade autenticación OAuth2; framework FastAPI, Python 3.11',
+      constraints: 'ej. No sugerir reescrituras arquitectónicas; mantener scope del diff'
+    },
+    content: {
+      audience: 'ej. CTOs de startups fintech en LATAM que buscan reducir costos de soporte',
+      mustHave: 'ej. Keyword primaria en título, H2/H3, meta descripción, ejemplo original de caso de uso',
+      avoid: 'ej. Keyword stuffing, estadísticas inventadas, contenido plagiado o genérico',
+      context: 'ej. Producto propio: chatbot de IA para banca; queremos posicionarnos vs soluciones legacy',
+      constraints: 'ej. 1500+ palabras, tono técnico pero accesible, CTA final a demo gratuita'
+    },
+    api: {
+      audience: 'ej. Frontend devs que consumirán la API; necesitan schemas claros y ejemplos de curl',
+      mustHave: 'ej. OpenAPI spec completa, auth flow documentado, rate limits, status codes con ejemplos',
+      avoid: 'ej. Endpoints sin versión, sin paginación, sin manejo de errores documentado',
+      context: 'ej. App multi-tenant de gestión de tareas; tenants aislados por subdomain',
+      constraints: 'ej. Consistencia en naming camelCase; todos los errores usan envelope estándar'
+    },
+    security: {
+      audience: 'ej. CTO que prioriza remediaciones por impacto de negocio, no solo severidad técnica',
+      mustHave: 'ej. Mapeo a OWASP Top 10, CVSS aproximado, evidencia concreta, plan de remediación priorizado',
+      avoid: 'ej. Ejecutar exploits contra sistemas en vivo, recomendaciones sin considerar contexto de negocio',
+      context: 'ej. App web Django/React, deploy en AWS, autenticación JWT, datos PCI en RDS',
+      constraints: 'ej. Análisis defensivo únicamente; no alterar datos de producción'
+    },
+    product: {
+      audience: 'ej. Stakeholders de ingeniería y diseño que necesitan scope claro para estimar',
+      mustHave: 'ej. Problem statement, usuarios objetivo, reqs priorizadas, métricas de éxito medibles',
+      avoid: 'ej. Scope abierto, sin métricas, suposiciones sin validar, omisión de riesgos técnicos',
+      context: 'ej. Feature de "automatización de respuestas" tras feedback de 12 clientes enterprise',
+      constraints: 'ej. MVP de 4 semanas; no incluir integraciones no solicitadas en V1'
+    },
+    research: {
+      audience: 'ej. Panel de revisión académica que verifica rigor metodológico y citas',
+      mustHave: 'ej. 3+ fuentes independientes por afirmación, fechas de publicación, separación hechos/especulación',
+      avoid: 'ej. Resúmenes sin fuentes primarias, citas a blogs sin autoridad, extrapolación excesiva',
+      context: 'ej. Tesis sobre adopción de LLMs en PyMES mexicanas; datos de encuestas propias + literatura',
+      constraints: 'ej. Solo fuentes peer-reviewed de 2022-2025; marcar conflictos entre estudios'
+    }
+  },
+  en: {
+    general: {
+      audience: 'e.g. My product lead, who needs a quick decision',
+      mustHave: 'e.g. Max 3 options, each with clear pros/cons',
+      avoid: 'e.g. No technical jargon, no unfounded assumptions',
+      context: 'e.g. 6-month-old startup, 3 enterprise clients, pitching Series A',
+      constraints: 'e.g. Max 500 words, professional tone, no filler'
+    },
+    competitive: {
+      audience: 'e.g. Series A investors who want to understand the market in 5 minutes',
+      mustHave: 'e.g. Positioning matrix, revenue estimates with sources, top 5 competitors',
+      avoid: 'e.g. Speculation without data, unsupported opinions, companies with no public revenue',
+      context: 'e.g. Our startup uses GPT-4 for support; we compete in LATAM against Zendesk-like companies',
+      constraints: 'e.g. Only verifiable 2024-2025 sources, no markets outside LATAM'
+    },
+    email: {
+      audience: 'e.g. Client gone quiet for 2 weeks; I need to reconnect without being pushy',
+      mustHave: 'e.g. Compelling subject line, body under 120 words, one clear CTA',
+      avoid: 'e.g. Sounding desperate, multiple CTAs, generic corporate jargon',
+      context: 'e.g. After 2 positive meetings, the prospect went silent; I want to reactivate',
+      constraints: 'e.g. Friendly but professional tone, mention specific value from prior meetings'
+    },
+    data: {
+      audience: 'e.g. Sales director who is non-technical; wants actionable insights, not raw tables',
+      mustHave: 'e.g. Top 3 revenue drivers, clear correlation with viz, prioritized recommendations',
+      avoid: 'e.g. Statistical language without explanation, charts without labeled axes, unsupported claims',
+      context: 'e.g. Q3-Q4 dataset with columns: customer, MRR, churn_flag, support_tickets, plan, country',
+      constraints: 'e.g. Assume ~8% missing records; clearly mark data limitations'
+    },
+    code: {
+      audience: 'e.g. Team of 3 junior devs who need to learn from review, not just get corrections',
+      mustHave: 'e.g. File:line references, severity (blocker/major/minor), concrete fix suggestion',
+      avoid: 'e.g. Just "this is wrong" without explaining why, style changes already covered by linter',
+      context: 'e.g. PR adding OAuth2 authentication; FastAPI framework, Python 3.11',
+      constraints: 'e.g. Do not suggest architectural rewrites; keep within diff scope'
+    },
+    content: {
+      audience: 'e.g. CTOs of LATAM fintech startups looking to reduce support costs',
+      mustHave: 'e.g. Primary keyword in title, H2/H3 structure, meta description, original case study example',
+      avoid: 'e.g. Keyword stuffing, fabricated stats, plagiarized or generic content',
+      context: 'e.g. Our product: AI chatbot for banking; we want to position vs legacy solutions',
+      constraints: 'e.g. 1500+ words, technical but accessible tone, end CTA to free demo'
+    },
+    api: {
+      audience: 'e.g. Frontend devs consuming the API; need clear schemas and curl examples',
+      mustHave: 'e.g. Complete OpenAPI spec, documented auth flow, rate limits, status codes with examples',
+      avoid: 'e.g. Endpoints without versioning, no pagination, no documented error handling',
+      context: 'e.g. Multi-tenant task management app; tenants isolated by subdomain',
+      constraints: 'e.g. Naming consistency in camelCase; all errors use standard envelope'
+    },
+    security: {
+      audience: 'e.g. CTO prioritizing remediations by business impact, not just technical severity',
+      mustHave: 'e.g. OWASP Top 10 mapping, approximate CVSS, concrete evidence, prioritized fix plan',
+      avoid: 'e.g. Running exploits against live systems, recommendations without business context',
+      context: 'e.g. Django/React web app, AWS deployment, JWT auth, PCI data in RDS',
+      constraints: 'e.g. Defensive analysis only; do not alter production data'
+    },
+    product: {
+      audience: 'e.g. Engineering and design stakeholders who need clear scope to estimate',
+      mustHave: 'e.g. Problem statement, target users, prioritized reqs, measurable success metrics',
+      avoid: 'e.g. Open-ended scope, no metrics, unvalidated assumptions, omitting technical risks',
+      context: 'e.g. "Response automation" feature after feedback from 12 enterprise clients',
+      constraints: 'e.g. 4-week MVP; do not include unsolicited integrations in V1'
+    },
+    research: {
+      audience: 'e.g. Academic review panel verifying methodological rigor and citations',
+      mustHave: 'e.g. 3+ independent sources per claim, publication dates, facts/speculation separation',
+      avoid: 'e.g. Summaries without primary sources, citations to non-authoritative blogs, excessive extrapolation',
+      context: 'e.g. Thesis on LLM adoption in Mexican SMEs; own survey data + literature',
+      constraints: 'e.g. Only peer-reviewed sources from 2022-2025; flag conflicts between studies'
+    }
+  },
+  pt: {
+    general: {
+      audience: 'ex. Meu líder de produto, que precisa de uma decisão rápida',
+      mustHave: 'ex. Máximo 3 opções, cada uma com prós/contras claros',
+      avoid: 'ex. Sem jargão técnico, sem suposições infundadas',
+      context: 'ex. Startup de 6 meses, 3 clientes enterprise, pitch Série A',
+      constraints: 'ex. Máximo 500 palavras, tom profissional, sem enrolação'
+    },
+    competitive: {
+      audience: 'ex. Investidores Série A que querem entender o mercado em 5 minutos',
+      mustHave: 'ex. Matriz de posicionamento, estimativas de receita com fontes, top 5 concorrentes',
+      avoid: 'ex. Especulação sem dados, opiniões sem respaldo, empresas sem receita pública',
+      context: 'ex. Nossa startup usa GPT-4 para suporte; competimos na LATAM contra empresas como Zendesk',
+      constraints: 'ex. Apenas fontes verificáveis de 2024-2025, sem análise de mercados fora da LATAM'
+    },
+    email: {
+      audience: 'ex. Cliente que ficou quieto por 2 semanas; preciso reconectar sem pressionar',
+      mustHave: 'ex. Assunto irresistível, corpo de máximo 120 palavras, um único CTA claro',
+      avoid: 'ex. Parecer desesperado, múltiplos CTAs, jargão corporativo genérico',
+      context: 'ex. Após 2 reuniões positivas, o prospect ficou em silêncio; quero reativar',
+      constraints: 'ex. Tom amigável mas profissional, mencionar valor específico das reuniões anteriores'
+    },
+    data: {
+      audience: 'ex. Diretor de vendas que não é técnico; quer insights acionáveis, não tabelas cruas',
+      mustHave: 'ex. Top 3 drivers de receita, correlação clara com visualização, recomendações priorizadas',
+      avoid: 'ex. Linguagem estatística sem explicação, gráficos sem eixos rotulados, afirmações sem suporte',
+      context: 'ex. Dataset Q3-Q4 com colunas: cliente, MRR, churn_flag, tickets_suporte, plano, país',
+      constraints: 'ex. Assumir ~8% de registros faltantes; marcar limitações dos dados claramente'
+    },
+    code: {
+      audience: 'ex. Equipe de 3 devs juniores que precisam aprender com o review, não só receber correções',
+      mustHave: 'ex. Referências arquivo:linha, severidade (bloqueador/maior/menor), sugestão de correção concreta',
+      avoid: 'ex. Só "isso está errado" sem explicar o porquê, mudanças de estilo já cobertas pelo linter',
+      context: 'ex. PR que adiciona autenticação OAuth2; framework FastAPI, Python 3.11',
+      constraints: 'ex. Não sugerir reescritas arquitetônicas; manter escopo do diff'
+    },
+    content: {
+      audience: 'ex. CTOs de startups fintech na LATAM que buscam reduzir custos de suporte',
+      mustHave: 'ex. Palavra-chave primária no título, H2/H3, meta descrição, exemplo original de caso de uso',
+      avoid: 'ex. Keyword stuffing, estatísticas inventadas, conteúdo plagiado ou genérico',
+      context: 'ex. Produto próprio: chatbot de IA para banco; queremos nos posicionar vs soluções legacy',
+      constraints: 'ex. 1500+ palavras, tom técnico mas acessível, CTA final para demo gratuita'
+    },
+    api: {
+      audience: 'ex. Frontend devs que consumirão a API; precisam de schemas claros e exemplos de curl',
+      mustHave: 'ex. Spec OpenAPI completa, auth flow documentado, rate limits, status codes com exemplos',
+      avoid: 'ex. Endpoints sem versão, sem paginação, sem tratamento de erros documentado',
+      context: 'ex. App multi-tenant de gestão de tarefas; tenants isolados por subdomain',
+      constraints: 'ex. Consistência em naming camelCase; todos os erros usam envelope padrão'
+    },
+    security: {
+      audience: 'ex. CTO que prioriza remediações por impacto de negócio, não só severidade técnica',
+      mustHave: 'ex. Mapeamento ao OWASP Top 10, CVSS aproximado, evidência concreta, plano de remediação priorizado',
+      avoid: 'ex. Executar exploits contra sistemas ao vivo, recomendações sem considerar contexto de negócio',
+      context: 'ex. App web Django/React, deploy na AWS, autenticação JWT, dados PCI no RDS',
+      constraints: 'ex. Análise defensiva unicamente; não alterar dados de produção'
+    },
+    product: {
+      audience: 'ex. Stakeholders de engenharia e design que precisam de escopo claro para estimar',
+      mustHave: 'ex. Problem statement, usuários-alvo, reqs priorizadas, métricas de sucesso mensuráveis',
+      avoid: 'ex. Escopo aberto, sem métricas, suposições sem validar, omissão de riscos técnicos',
+      context: 'ex. Feature de "automação de respostas" após feedback de 12 clientes enterprise',
+      constraints: 'ex. MVP de 4 semanas; não incluir integrações não solicitadas no V1'
+    },
+    research: {
+      audience: 'ex. Painel de revisão acadêmica que verifica rigor metodológico e citações',
+      mustHave: 'ex. 3+ fontes independentes por afirmação, datas de publicação, separação fatos/especulação',
+      avoid: 'ex. Resumos sem fontes primárias, citações a blogs sem autoridade, extrapolação excessiva',
+      context: 'ex. Tese sobre adoção de LLMs em PyMES mexicanas; dados de pesquisas próprias + literatura',
+      constraints: 'ex. Apenas fontes peer-reviewed de 2022-2025; sinalizar conflitos entre estudos'
+    }
+  }
+};
+
 function askSmartQuestions() {
+  const lazyPrompt = document.getElementById('quickPrompt').value.trim();
   const qs = quickUseCase === 'email'
     ? [t('qAudience'), t('qMustHave'), t('qAvoid')]
     : quickUseCase === 'data'
@@ -3094,10 +3341,20 @@ function askSmartQuestions() {
       : quickUseCase === 'code'
         ? [t('qContext'), t('qMustHave'), t('qAvoid')]
         : [t('qAudience'), t('qMustHave'), t('qAvoid')];
+  
+  const qTypes = quickUseCase === 'email'
+    ? ['audience', 'mustHave', 'avoid']
+    : quickUseCase === 'data'
+      ? ['context', 'mustHave', 'constraints']
+      : quickUseCase === 'code'
+        ? ['context', 'mustHave', 'avoid']
+        : ['audience', 'mustHave', 'avoid'];
+  
   const panel = document.getElementById('smartQuestions');
-  panel.innerHTML = `<div class="quick-row-title" style="margin-top:0;">${t('qTitle')}</div>` + qs.map(q =>
-    `<label>${q}</label><input type="text" data-label="${escapeHtml(q)}" oninput="quickAutoGenerate(false)" placeholder="${escapeHtml(q)}">`
-  ).join('');
+  panel.innerHTML = `<div class="quick-row-title" style="margin-top:0;">${t('qTitle')}</div>` + qs.map((q, i) => {
+    const example = generateSmartExamples(lazyPrompt, qTypes[i], currentLang);
+    return `<label>${q}</label><input type="text" data-label="${escapeHtml(q)}" data-example-type="${qTypes[i]}" oninput="quickAutoGenerate(false)" placeholder="${escapeHtml(example)}">`;
+  }).join('');
   panel.classList.add('open');
   showToast(t('toastQuestionsReady'));
 }
