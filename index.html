@@ -3354,7 +3354,7 @@ function askSmartQuestions() {
   const panel = document.getElementById('smartQuestions');
   panel.innerHTML = `<div class="quick-row-title" style="margin-top:0;">${t('qTitle')}</div>` + qs.map((q, i) => {
     const example = generateSmartExamples(lazyPrompt, qTypes[i], currentLang);
-    return `<label>${q}</label><input type="text" data-label="${escapeHtml(q)}" data-example-type="${qTypes[i]}" oninput="quickAutoGenerate(false)" placeholder="${escapeHtml(example)}">`;
+    return `<label>${q}</label><input type="text" data-label="${escapeHtml(q)}" data-example-type="${qTypes[i]}" oninput="this.dataset.userModified='true'; quickAutoGenerate(false)" value="${escapeHtml(example)}" placeholder="${escapeHtml(q)}">`;
   }).join('');
   panel.classList.add('open');
   showToast(t('toastQuestionsReady'));
@@ -3371,7 +3371,10 @@ function generateExamplesCommand() {
   inputs.forEach(inp => {
     const qType = inp.getAttribute('data-example-type');
     const example = generateSmartExamples(lazyPrompt, qType, currentLang);
-    inp.placeholder = example;
+    // Only update if user hasn't modified the value
+    if (!inp.dataset.userModified) {
+      inp.value = example;
+    }
   });
   showToast(currentLang === 'es' ? '✨ Ejemplos regenerados' : currentLang === 'pt' ? '✨ Exemplos regenerados' : '✨ Examples regenerated');
 }
