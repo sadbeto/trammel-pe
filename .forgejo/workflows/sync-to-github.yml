@@ -1,0 +1,23 @@
+name: Sync to GitHub
+
+on:
+  push:
+    branches: ['*']
+    tags: ['*']
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    # Skip if push came from the GitHub sync workflow
+    if: github.actor != 'forgejo-actions' || !contains(github.event.head_commit.message, 'Sync to Codeberg')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push to GitHub
+        run: |
+          git remote add github https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/sadbeto/trammel-pe.git
+          git push github --all --force
+          git push github --tags --force

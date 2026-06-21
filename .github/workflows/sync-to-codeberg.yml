@@ -1,0 +1,23 @@
+name: Sync to Codeberg
+
+on:
+  push:
+    branches: ['*']
+    tags: ['*']
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    # Skip if push came from the Codeberg sync workflow
+    if: github.actor != 'github-actions[bot]' || !contains(github.event.head_commit.message, 'Sync to GitHub')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push to Codeberg
+        run: |
+          git remote add codeberg https://oauth2:${{ secrets.CODEBERG_TOKEN }}@codeberg.org/JJSOLUTIONS/trammel-pe.git
+          git push codeberg --all --force
+          git push codeberg --tags --force
