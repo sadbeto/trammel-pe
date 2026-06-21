@@ -66,7 +66,7 @@ def generate_prompt(
         in_scope: What the agent SHOULD handle.
         out_scope: What the agent should NOT touch.
         depth: Analysis depth: quick, standard, expert.
-        role: Who the agent should be (e.g., 'Senior Dev Agent Principal').
+        role: Who the agent should be (e.g., 'Senior Code Reviewer').
         tone: Communication style: technical, casual, academic, formal.
         tools: Comma-separated list of tools the agent can use.
         subtasks: JS-composable task decomposition (JSON list of dicts with objective, data_focus).

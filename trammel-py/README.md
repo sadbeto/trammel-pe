@@ -74,7 +74,7 @@ trammel = TrammelPE()
 prompt = trammel.generate_markdown(data)
 
 # For OpenClaw — save as .md and reference in agent config
-trammel.save(data, format="markdown", path="agents/prompts/buildera-dap.md")
+trammel.save(data, format="markdown", path="agents/prompts/my-agent-prompt.md")
 
 # For LangChain — use as prompt template
 from langchain_core.prompts import ChatPromptTemplate
